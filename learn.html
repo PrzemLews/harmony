@@ -186,8 +186,10 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 .check{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;cursor:pointer}
 .check input{width:18px;height:18px;accent-color:var(--ink)}
 @media (prefers-reduced-motion:reduce){.sound-panel{animation:none}.sp-opt{transition:none}}
-/* chord workout */
-.workout{gap:16px;padding:20px}
+/* chord workout: lives inside the Chords card, right under its keyboard */
+.workout{display:flex;flex-direction:column;gap:16px;margin-top:4px;padding-top:18px;border-top:2px dashed var(--paper-2);min-width:0}
+.key.bad{background:var(--coral)!important}
+.key.bad .kn,.key.bad .ml{color:var(--sheet)}
 .wk-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px}
 .wk-title{font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.1;margin:2px 0 0}
 .wk-count{display:flex;flex-direction:column;gap:6px;align-items:flex-end;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;flex:0 1 260px;min-width:180px}
@@ -313,8 +315,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
         <div class="field" style="flex:1 1 300px;min-width:0"><span class="label">How it's built</span><span id="chordBuild"></span></div>
       </div>
       <div class="piano-wrap"><div class="piano" id="pianoChords"></div></div>
-    </div>
-    <div class="tool workout" id="workout">
+      <div class="workout" id="workout">
       <div class="wk-head">
         <div><span class="label">Your turn</span><h3 class="wk-title">Chord workout</h3></div>
         <div class="wk-count"><span id="wkCount">Step 1 of 17</span><div class="wk-bar" aria-hidden="true"><i id="wkFill"></i></div></div>
@@ -329,11 +330,11 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       </div>
       <div class="wk-actions">
         <button class="btn ghost" type="button" id="wkHear">Hear it</button>
-        <button class="btn ghost" type="button" id="wkShow">Show on keyboard</button>
         <button class="pill" type="button" id="wkSkip">Skip this step</button>
         <button class="pill" type="button" id="wkRestart">Start over</button>
       </div>
-      <p class="status" id="chStatus">Play the chord on the card. Any octave and any order counts, unless the card says which note goes at the bottom.</p>
+      <p class="status" id="chStatus">Play the chord on the card. Its notes are marked on the keyboard above. Any octave and any order counts, unless the card says which note goes at the bottom.</p>
+      </div>
     </div>
   </section>
 
@@ -909,7 +910,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     const card = $('wkCard'); card.classList.remove('ok', 'no');
     card.classList.toggle('fin', done);
     $('wkSkip').hidden = done;
-    $('wkHear').hidden = done; $('wkShow').hidden = done;
+    $('wkHear').hidden = done;
     if (done){
       $('wkRoundName').textContent = 'Workout complete';
       $('wkSym').textContent = '✓';
@@ -922,6 +923,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     $('wkSym').textContent = wkSym(t);
     $('wkName').textContent = longName(t) + (t.inv ? (t.inv === 1 ? ', 1st inversion' : ', 2nd inversion') : '');
     $('wkTones').textContent = spell(t).join(' · ');
+    syncExplorer(t);
     $('wkTip').textContent = t.inv ? `Put ${bassName(t)} at the bottom. The slash in ${wkSym(t)} names the lowest note.` : ROUNDS[t.ri].tip;
   }
   function wkAdvance(){
@@ -937,14 +939,16 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     const right = setEq(pcs, chordPcs(t));
     const bassOk = !t.inv || held[0] % 12 === (t.root + QUAL[t.q].iv[t.inv]) % 12;
     if (right && bassOk){
-      wkBusy = true; $('wkCard').classList.add('ok');
+      wkBusy = true; $('wkCard').classList.add('ok'); pC.flash(held, 650);
       say('chStatus', `${wkSym(t)}, correct.`, 'good');
       later(700, wkAdvance);
     } else if (right){
+      markBad([held[0]]);
       $('wkCard').classList.add('no'); setTimeout(() => $('wkCard').classList.remove('no'), 400);
       say('chStatus', `Right notes. Now put ${bassName(t)} at the bottom: your lowest note is ${spell(t)[QUAL[t.q].iv.map(i => (t.root + i) % 12).indexOf(held[0] % 12)]}.`, 'warn');
     } else {
-      const id = identify(held);
+      const id = identify(held), tp = chordPcs(t);
+      markBad(held.filter(m => !tp.has(m % 12)));
       $('wkCard').classList.add('no'); setTimeout(() => $('wkCard').classList.remove('no'), 400);
       say('chStatus', `${id ? `That's ${sym(id)}` : 'Not quite'}. ${longName(t)} is ${spell(t).join(' · ')}.`, 'warn');
     }
@@ -955,14 +959,15 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     v.forEach((m,i) => tone(m, i*0.16, 0.35)); v.forEach(m => tone(m, 0.6, 1.1));
     later(600, () => pC.flash(v, 1000));
   });
-  $('wkShow').addEventListener('click', () => {
-    if (wkIdx >= WK.length) return;
-    const t = WK[wkIdx];
+  // the keyboard above always shows the chord on the workout card
+  function syncExplorer(t){
     ch.root = t.root; ch.q = t.q; ch.inv = t.inv || 0;
     $('chordRoot').value = String(t.root); setSeg($('chordQ'), t.q);
     renderChord();
-    $('pianoChords').scrollIntoView({block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
-  });
+  }
+  function markBad(ms){
+    ms.forEach(m => { const k = pC.keys.get(fold(m)); if (k){ k.classList.add('bad'); setTimeout(() => k.classList.remove('bad'), 700); } });
+  }
   $('wkSkip').addEventListener('click', () => { if (wkIdx < WK.length){ cancelSeq(); wkAdvance(); } });
   $('wkRestart').addEventListener('click', () => { wkIdx = 0; wkBusy = false; saveWk(); renderWorkout(); say('chStatus', 'Starting again from round 1.', ''); });
   renderWorkout();
