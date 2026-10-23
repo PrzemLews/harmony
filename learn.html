@@ -54,10 +54,21 @@ h1{font-family:var(--f-display);font-weight:400;font-size:clamp(36px,6vw,60px);l
 .toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .toc button{font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer}
 .toc b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--marigold);border:1.5px solid var(--ink);font-size:12px}
+.toc button.done b{background:var(--leaf);color:var(--sheet);border-color:var(--leaf)}
+.progress{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px;font-weight:600}
+.segs{display:flex;gap:4px}
+.segs i{width:34px;height:8px;border-radius:4px;background:var(--paper-2);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.segs i.on{background:var(--leaf);box-shadow:none}
+.done-toggle{margin-left:auto;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer;white-space:nowrap}
+.done-toggle .box{flex:none;width:18px;height:18px;border-radius:5px;border:2px solid var(--ink);background:var(--sheet);position:relative}
+.done-toggle[aria-pressed="true"]{background:var(--leaf);border-color:var(--leaf);color:var(--sheet)}
+.done-toggle[aria-pressed="true"] .box{border-color:var(--sheet);background:var(--sheet)}
+.done-toggle[aria-pressed="true"] .box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;border:solid var(--leaf);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.lesson.is-done .num{background:var(--leaf);color:var(--sheet)}
 .toc a{font-size:14px;font-weight:700;color:var(--ink);align-self:center;margin-left:4px}
 
 .lesson{display:grid;gap:18px;padding-block:32px;border-top:2px solid var(--ink);scroll-margin-top:90px}
-.lesson-head{display:flex;align-items:center;gap:14px}
+.lesson-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
 .num{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--marigold);border:2px solid var(--ink);font-family:var(--f-display);font-size:22px}
 h2{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,3.6vw,34px);line-height:1.1;margin:0;text-wrap:balance}
 h3{font-size:15px;margin:0}
@@ -181,12 +192,16 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <button type="button" data-go="gallery"><b>5</b>Chord gallery</button>
       <a href="index.html">Skip to the game →</a>
     </div>
+    <div class="progress" aria-live="polite">
+      <div class="segs" id="progSegs"><i></i><i></i><i></i><i></i><i></i></div>
+      <span id="progText">0 of 5 lessons done</span>
+    </div>
     <p class="help">Computer keys: <kbd>A</kbd> to <kbd>;</kbd> play the white keys from middle C, <kbd>W</kbd> <kbd>E</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>O</kbd> <kbd>P</kbd> the black keys, <kbd>Z</kbd> / <kbd>X</kbd> shift the octave.</p>
   </section>
 
   <!-- 1 -->
   <section class="lesson" id="notes" data-lesson="notes">
-    <div class="lesson-head"><span class="num">1</span><h2>Notes and steps</h2></div>
+    <div class="lesson-head"><span class="num">1</span><h2>Notes and steps</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
     <div class="prose">
       <p>Western music uses just <span class="term">12 notes</span>, and they repeat up and down the keyboard. The white keys are named with the letters A to G. Each black key sits between two white keys and takes its name from them: the key just above C is <b>C♯</b> (C sharp), which is the same key as <b>D♭</b> (D flat).</p>
       <p>The smallest distance between two notes is a <span class="term">half step</span> (also called a semitone): from one key to the very next, black or white. Two half steps make a <span class="term">whole step</span>. Twelve half steps bring you to the same letter again, one <span class="term">octave</span> higher. It sounds like the same note, just brighter.</p>
@@ -204,7 +219,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 
   <!-- 2 -->
   <section class="lesson" id="scales" data-lesson="scales">
-    <div class="lesson-head"><span class="num">2</span><h2>Scales</h2></div>
+    <div class="lesson-head"><span class="num">2</span><h2>Scales</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
     <div class="prose">
       <p>A <span class="term">scale</span> is a set of seven notes picked out of the twelve, played in order. Which seven you pick follows a fixed pattern of whole steps (W) and half steps (H).</p>
       <p>The <b>major scale</b> follows <b>W W H W W W H</b>. It sounds bright and settled. Start it on C and you get only white keys: C D E F G A B C. The <b>natural minor scale</b> follows <b>W H W W H W W</b> and sounds darker. Start the same pattern on any other key and black keys appear, because the pattern stays the same.</p>
@@ -225,7 +240,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 
   <!-- 3 -->
   <section class="lesson" id="chords" data-lesson="chords">
-    <div class="lesson-head"><span class="num">3</span><h2>Chords</h2></div>
+    <div class="lesson-head"><span class="num">3</span><h2>Chords</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
     <div class="prose">
       <p>A <span class="term">chord</span> is three or more notes played together. The most common chord is the <span class="term">triad</span>: take a scale, play degree 1, skip one, play degree 3, skip one, play degree 5. That is stacking intervals called <b>thirds</b>.</p>
       <p>Two kinds of third make the difference between the two main chords. A <b>major third</b> is 4 half steps, a <b>minor third</b> is 3.</p>
@@ -254,7 +269,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 
   <!-- 4 -->
   <section class="lesson" id="harmony" data-lesson="harmony">
-    <div class="lesson-head"><span class="num">4</span><h2>Harmony</h2></div>
+    <div class="lesson-head"><span class="num">4</span><h2>Harmony</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
     <div class="prose">
       <p><span class="term">Harmony</span> is how notes sound together, and how chords move from one to the next. It starts with the key. Build a triad on every degree of a major scale using only notes from that scale, and you get <b>seven chords that belong to the key</b>.</p>
       <p>Musicians number them with <span class="term">Roman numerals</span>: uppercase for major chords (I, IV, V), lowercase for minor (ii, iii, vi), and ° for the one diminished chord (vii°). Every major key has the same pattern, so a progression written as numerals works in any key.</p>
@@ -277,7 +292,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 
   <!-- 5 -->
   <section class="lesson" id="gallery" data-lesson="gallery">
-    <div class="lesson-head"><span class="num">5</span><h2>Chord gallery</h2></div>
+    <div class="lesson-head"><span class="num">5</span><h2>Chord gallery</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
     <div class="prose">
       <p>Major and minor are the start. Change one note, or add a fourth note on top, and the mood shifts. The numbers below each chord are its <b>formula</b>: which scale degrees it uses, counted from the major scale of its root. A ♭ means that degree is lowered by a half step, ♯ means raised.</p>
     </div>
@@ -294,7 +309,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 
   <div class="finale">
     <div>
-      <h2>Ready for the gates?</h2>
+      <h2 id="finTitle">Ready for the gates?</h2>
       <p>The game starts with the six chords of C major you just met, then works up to every major and minor chord.</p>
     </div>
     <a class="btn" href="index.html">Play Harmony Game</a>
@@ -743,6 +758,32 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     if (setEq(new Set(held.map(m => m % 12)), chordPcs(t))) say('galStatus', `Yes, that's ${sym(t)}: ${QUAL[galSel].d}`, 'good');
   });
   renderGallery();
+
+  // ---------- Progress ticks ----------
+  const LESSONS = ['notes','scales','chords','harmony','gallery'];
+  let done = new Set();
+  try { const raw = localStorage.getItem('hb-done'); if (raw) done = new Set(JSON.parse(raw).filter(x => LESSONS.includes(x))); } catch(e){}
+  function renderDone(){
+    LESSONS.forEach((id, i) => {
+      const sec = $(id), on = done.has(id), t = sec.querySelector('.done-toggle');
+      sec.classList.toggle('is-done', on);
+      t.setAttribute('aria-pressed', String(on));
+      t.querySelector('.t').textContent = on ? 'Done' : 'Mark as done';
+      const tb = document.querySelector(`[data-go="${id}"]`);
+      tb.classList.toggle('done', on); tb.querySelector('b').textContent = on ? '✓' : String(i + 1);
+    });
+    const n = done.size;
+    [...$('progSegs').children].forEach((s, i) => s.classList.toggle('on', i < n));
+    $('progText').textContent = n === 5 ? 'All 5 lessons done' : `${n} of 5 lessons done`;
+    $('finTitle').textContent = n === 5 ? 'You know the basics. Ready for the gates?' : 'Ready for the gates?';
+  }
+  document.querySelectorAll('.done-toggle').forEach(t => t.addEventListener('click', () => {
+    const id = t.closest('.lesson').id;
+    done.has(id) ? done.delete(id) : done.add(id);
+    try { localStorage.setItem('hb-done', JSON.stringify([...done])); } catch(e){}
+    renderDone();
+  }));
+  renderDone();
 
   // open a lesson from the link, e.g. #chords
   const h = location.hash.slice(1);
