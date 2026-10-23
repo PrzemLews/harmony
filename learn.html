@@ -350,9 +350,9 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <div class="controls">
         <label class="field"><span class="label">Key</span><select id="keyRoot"></select></label>
         <div class="field"><span class="label">Mode</span><div class="seg" id="keyMode"><button type="button" data-v="minor" aria-pressed="true">Minor</button><button type="button" data-v="major" aria-pressed="false">Major</button></div></div>
-        <div class="field"><span class="label">Playback</span><div class="seg" id="keyGroove"><button type="button" data-v="1" aria-pressed="true">Groove · 122 BPM</button><button type="button" data-v="0" aria-pressed="false">Chords only</button></div></div>
+        <div class="field"><span class="label">Playback</span><div class="seg" id="keyGroove"><button type="button" data-v="1" aria-pressed="true">Full groove</button><button type="button" data-v="0" aria-pressed="false">Chords only</button></div></div>
       </div>
-      <p class="help">Tap a chord to hear it and see it on the keyboard. Try the Dreamy or Shimmer pad from the Sound panel.</p>
+      <p class="help">Tap a chord to hear it and see it on the keyboard. Full groove plays each progression with drums, bass and an arpeggio in its genre's tempo. Try the Dreamy or Shimmer pad from the Sound panel.</p>
       <div class="cards" id="keyCards"></div>
       <div class="piano-wrap"><div class="piano" id="pianoHarmony"></div></div>
       <p class="status" id="keyStatus">The chords of A minor.</p>
@@ -983,17 +983,17 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   };
   const PROGS = {
     minor:[
-      {name:'Euphoric anthem', note:'Trance and festival breakdowns', deg:[0,5,2,6]},
-      {name:'Melodic techno drive', note:'Dark, hypnotic two-chord sway', deg:[0,6,5,6]},
-      {name:'Bittersweet progressive', note:'Long progressive house builds', deg:[0,3,6,2]},
-      {name:'The lift into the drop', note:'Rising energy that lands on home', deg:[3,5,6,0]},
-      {name:'Ambient drift', note:'Slow, floating, never quite settles', deg:[0,4,5,2]}
+      {name:'Euphoric anthem', note:'Trance and festival breakdowns', kit:'trance', bpm:138, deg:[0,5,2,6]},
+      {name:'Melodic techno drive', note:'Dark, hypnotic two-chord sway', kit:'techno', bpm:122, deg:[0,6,5,6]},
+      {name:'Bittersweet progressive', note:'Long progressive house builds', kit:'prog', bpm:124, deg:[0,3,6,2]},
+      {name:'The lift into the drop', note:'Rising energy that lands on home', kit:'build', bpm:128, deg:[3,5,6,0]},
+      {name:'Ambient drift', note:'Slow, floating, never quite settles', kit:'ambient', bpm:90, deg:[0,4,5,2]}
     ],
     major:[
-      {name:'Uplifting house', note:'Feel-good piano house', deg:[0,4,5,3]},
-      {name:'Sunrise set', note:'Hopeful, open, morning-after', deg:[3,0,4,5]},
-      {name:'Festival lift', note:'Big-room build before the drop', deg:[5,3,0,4]},
-      {name:'Deep house glide', note:'Smooth and warm', deg:[1,4,0,0]}
+      {name:'Uplifting house', note:'Feel-good piano house', kit:'house', bpm:124, deg:[0,4,5,3]},
+      {name:'Sunrise set', note:'Hopeful, open, morning-after', kit:'sunrise', bpm:120, deg:[3,0,4,5]},
+      {name:'Festival lift', note:'Big-room build before the drop', kit:'build', bpm:128, deg:[5,3,0,4]},
+      {name:'Deep house glide', note:'Smooth and warm', kit:'deep', bpm:120, deg:[1,4,0,0]}
     ]
   };
   let keyRoot = 9, keyMode = 'minor', groove = true, keyChords = [], keyCardEls = [];
@@ -1024,7 +1024,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     const pw = $('progs'); pw.textContent = '';
     PROGS[keyMode].forEach(p => {
       const row = el('div', 'prog');
-      const pn = el('div', 'pn', p.name); pn.appendChild(el('small', null, p.note));
+      const pn = el('div', 'pn', p.name); pn.appendChild(el('small', null, `${p.note} · ${p.bpm} BPM`));
       const rom = el('div', 'rom', p.deg.map(d => keyChords[d].numeral).join(' – '));
       const chs = el('div', 'chs', p.deg.map(d => sym(keyChords[d])).join('  '));
       const b = el('button', 'btn ghost', 'Play'); b.type = 'button';
@@ -1043,10 +1043,81 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     if (sound){ ensureAudio(); c.notes.forEach(m => tone(m, 0, 1.4)); pH.flash(c.notes, 1300); }
     say('keyStatus', `${c.numeral} is ${longName(c)}: ${c.tones.join(' · ')}. ${c.role}: ${c.roleDesc}`, '');
   }
+  // ---------- drum machine (synthesized, per-genre patterns) ----------
+  let noiseBuf = null;
+  function noise(){
+    if (!noiseBuf){ noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1; }
+    const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true; return src;
+  }
+  function hit(kind, at, vel, len){
+    if (!AC || !soundOn) return;
+    const t = AC.currentTime + at, out = AC.createGain(), srcs = [];
+    out.connect(master);
+    const env = (peak, decay) => { out.gain.setValueAtTime(0.0001, t); out.gain.linearRampToValueAtTime(peak, t + 0.002); out.gain.exponentialRampToValueAtTime(0.0001, t + decay); return decay; };
+    const filtered = (type, freq, q) => { const n = noise(), f = AC.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q || 0.7; n.connect(f); f.connect(out); srcs.push(n); return {n, f}; };
+    let end;
+    if (kind === 'kick'){
+      const o = AC.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(155, t); o.frequency.exponentialRampToValueAtTime(46, t + 0.11);
+      o.connect(out); srcs.push(o); end = env(0.95*vel, 0.42);
+    } else if (kind === 'clap'){
+      filtered('bandpass', 1400, 1.1);
+      out.gain.setValueAtTime(0.0001, t);
+      [0, 0.011, 0.022].forEach(d => { out.gain.setValueAtTime(0.55*vel, t + d); out.gain.exponentialRampToValueAtTime(0.08*vel, t + d + 0.009); });
+      out.gain.setValueAtTime(0.5*vel, t + 0.033); out.gain.exponentialRampToValueAtTime(0.0001, t + 0.24); end = 0.25;
+    } else if (kind === 'snare'){
+      filtered('bandpass', 1900, 0.8);
+      const o = AC.createOscillator(), og = AC.createGain(); o.type = 'triangle'; o.frequency.value = 190;
+      og.gain.setValueAtTime(0.35*vel, t); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.09); o.connect(og); og.connect(out); srcs.push(o);
+      end = env(0.5*vel, 0.16);
+    } else if (kind === 'hatC'){ filtered('highpass', 7500); end = env(0.32*vel, 0.045); }
+    else if (kind === 'hatO'){ filtered('highpass', 6800); end = env(0.26*vel, 0.24); }
+    else if (kind === 'shaker'){ filtered('bandpass', 5200, 1.2); end = env(0.2*vel, 0.055); }
+    else if (kind === 'rim'){
+      const o = AC.createOscillator(); o.type = 'triangle'; o.frequency.value = 830; o.connect(out); srcs.push(o); end = env(0.32*vel, 0.06);
+    } else if (kind === 'crash'){ filtered('highpass', 4200); end = env(0.3*vel, 1.8); }
+    else if (kind === 'riser'){
+      const {f} = filtered('bandpass', 400, 1.5);
+      f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(9000, t + len);
+      out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(0.3*vel, t + len); out.gain.setValueAtTime(0.0001, t + len + 0.01); end = len + 0.02;
+    }
+    srcs.forEach(n => { n.start(t); n.stop(t + end + 0.05); });
+    scheduled.push({g: out, oscs: srcs});
+  }
+  // 16 steps per bar: x = full hit, o = soft hit
+  const KITS = {
+    trance:{kick:'x...x...x...x...', clap:'....x.......x...', hatO:'..x...x...x...x.', hatC:'oooooooooooooooo'},
+    techno:{kick:'x...x...x...x...', clap:'....o.......o...', hatC:'..x...x...x...x.', shaker:'oooooooooooooooo', rim:'...x......x..x..'},
+    prog:{kick:'x...x...x...x...', clap:'....x.......x...', hatO:'..x...x...x...x.', shaker:'oooooooooooooooo', rim:'.......x.......x'},
+    ambient:{kick:'x.........o.....', rim:'....o.......o...', shaker:'o.o.o.o.o.o.o.o.'},
+    house:{kick:'x...x...x...x...', clap:'....x.......x...', hatO:'..x...x...x...x.', shaker:'o.o.o.o.o.o.o.o.'},
+    sunrise:{kick:'x...x...x...x...', clap:'............x...', hatC:'..x...x...x...x.', rim:'.......x.....x..', shaker:'oooooooooooooooo'},
+    deep:{kick:'x...x...x...x...', clap:'....x.......x...', hatC:'..x...x...x...x.', shaker:'.o.o.o.o.o.o.o.o'}
+  };
+  function playDrums(kit, bars, beat){
+    const step = beat / 4;
+    const play = (pat, b) => Object.entries(pat).forEach(([kind, row]) => [...row].forEach((ch, k) => { if (ch !== '.') hit(kind, b*16*step + k*step, ch === 'x' ? 1 : 0.5); }));
+    if (kit !== 'build'){ for (let b = 0; b < bars; b++) play(KITS[kit], b); return; }
+    // build-up: snare roll gets denser and louder with a noise riser, then the last bar drops with a crash
+    const last = bars - 1;
+    hit('riser', 0, 1, last*16*step);
+    for (let b = 0; b < last; b++){
+      const every = b === 0 ? 8 : b === last - 1 ? 1 : 2;
+      for (let k = 0; k < 16; k++){
+        const at = b*16*step + k*step, prog = (b*16 + k) / (last*16);
+        if (k % 4 === 0 && !(b === last - 1 && k >= 12)) hit('kick', at, 0.9);
+        if (k % 4 === 2) hit('hatO', at, 0.6);
+        if ((k + (every === 8 ? 4 : 0)) % every === 0) hit('snare', at, 0.3 + 0.7*prog);
+      }
+    }
+    hit('crash', last*16*step, 1);
+    play({kick:'x...x...x...x...', clap:'....x.......x...', hatO:'..x...x...x...x.', shaker:'oooooooooooooooo'}, last);
+  }
   function playProg(p){
     ensureAudio(); cancelSeq();
     keyCardEls.forEach(e => e.classList.remove('sel'));
-    const beat = 60 / 122, bar = groove ? beat*4 : 1.05;
+    const beat = 60 / p.bpm, bar = groove ? beat*4 : 1.05;
+    if (groove) playDrums(p.kit, p.deg.length, beat);
     p.deg.forEach((d,i) => {
       const c = keyChords[d], at = i * bar;
       if (groove){
