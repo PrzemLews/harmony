@@ -352,7 +352,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
         <div class="field"><span class="label">Mode</span><div class="seg" id="keyMode"><button type="button" data-v="minor" aria-pressed="true">Minor</button><button type="button" data-v="major" aria-pressed="false">Major</button></div></div>
         <div class="field"><span class="label">Playback</span><div class="seg" id="keyGroove"><button type="button" data-v="1" aria-pressed="true">Full groove</button><button type="button" data-v="0" aria-pressed="false">Chords only</button></div></div>
       </div>
-      <p class="help">Tap a chord to hear it and see it on the keyboard. Full groove plays each progression with drums, bass and an arpeggio in its genre's tempo. Try the Dreamy or Shimmer pad from the Sound panel.</p>
+      <p class="help">Tap a chord to hear it and see it on the keyboard. Full groove plays each progression with its genre's own sounds, drums and tempo. Chords only, and tapping a chord, use the sound you picked in the Sound panel.</p>
       <div class="cards" id="keyCards"></div>
       <div class="piano-wrap"><div class="piano" id="pianoHarmony"></div></div>
       <p class="status" id="keyStatus">The chords of A minor.</p>
@@ -555,6 +555,26 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       filt.connect(g); g.connect(drive);
       return {g, oscs:o};
     },
+    // used only by the genre grooves in lesson 4
+    pluck(m, t, vel){
+      const f = hz(m), g = AC.createGain(), filt = AC.createBiquadFilter();
+      const o = [osc('sawtooth', f, t, -7), osc('square', f, t, 7)];
+      mixInto(o, [0.5, 0.25], filt);
+      filt.type = 'lowpass'; filt.Q.value = 4;
+      filt.frequency.setValueAtTime(Math.min(9000, f*8), t); filt.frequency.exponentialRampToValueAtTime(Math.max(200, f*1.5), t + 0.18);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.42*vel, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0008, t + 0.38);
+      o.forEach(x => x.stop(t + 0.45));
+      filt.connect(g); g.connect(master); send(g, 0.35);
+      return {g, oscs:o};
+    },
+    sub(m, t, vel){
+      const f = hz(m), g = AC.createGain();
+      const o = [osc('sine', f, t), osc('triangle', f, t)];
+      mixInto(o, [0.9, 0.12], g);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.7*vel, t + 0.006);
+      g.connect(master);
+      return {g, oscs:o};
+    },
     bass(m, t, vel){
       const f = hz(m - 12), g = AC.createGain(), filt = AC.createBiquadFilter();
       const o = [osc('square', f, t), osc('sine', f, t)];
@@ -567,7 +587,8 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       return {g, oscs:o};
     }
   };
-  function makeVoice(m, t, vel){ const v = MAKERS[soundKey](m, t, vel); v.rel = SOUNDS[soundKey].rel; return v; }
+  const EXTRA_REL = {pluck:0.08, sub:0.05};
+  function makeVoice(m, t, vel, snd){ const k = snd || soundKey, v = MAKERS[k](m, t, vel); v.rel = SOUNDS[k] ? SOUNDS[k].rel : EXTRA_REL[k]; return v; }
   function release(v, t, tc){
     const r = tc != null ? tc : v.rel;
     v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(v.g.gain.value, t); v.g.gain.setTargetAtTime(0, t, r);
@@ -575,9 +596,9 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   }
   function playVoice(m, vel){ if (!AC || !soundOn) return; stopVoice(m); voices.set(m, makeVoice(m, AC.currentTime, vel)); }
   function stopVoice(m){ const v = voices.get(m); if (!v || !AC) return; release(v, AC.currentTime); voices.delete(m); }
-  function tone(m, at, dur, vel){
+  function tone(m, at, dur, vel, snd){
     if (!AC || !soundOn) return;
-    const t = AC.currentTime + at, v = makeVoice(m, t, vel || 0.6);
+    const t = AC.currentTime + at, v = makeVoice(m, t, vel || 0.6, snd);
     v.g.gain.setTargetAtTime(0, t + dur, v.rel);
     v.oscs.forEach(o => { try { o.stop(t + dur + v.rel*8); } catch(e){} });
     scheduled.push(v);
@@ -1024,7 +1045,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     const pw = $('progs'); pw.textContent = '';
     PROGS[keyMode].forEach(p => {
       const row = el('div', 'prog');
-      const pn = el('div', 'pn', p.name); pn.appendChild(el('small', null, `${p.note} · ${p.bpm} BPM`));
+      const pn = el('div', 'pn', p.name); pn.appendChild(el('small', null, `${p.note} · ${p.bpm} BPM`)); pn.appendChild(el('small', 'arr', `Sounds: ${arrText(p.kit)}`));
       const rom = el('div', 'rom', p.deg.map(d => keyChords[d].numeral).join(' – '));
       const chs = el('div', 'chs', p.deg.map(d => sym(keyChords[d])).join('  '));
       const b = el('button', 'btn ghost', 'Play'); b.type = 'button';
@@ -1094,6 +1115,18 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     sunrise:{kick:'x...x...x...x...', clap:'............x...', hatC:'..x...x...x...x.', rim:'.......x.....x..', shaker:'oooooooooooooooo'},
     deep:{kick:'x...x...x...x...', clap:'....x.......x...', hatC:'..x...x...x...x.', shaker:'.o.o.o.o.o.o.o.o'}
   };
+  const ARR = {
+    trance:{chord:'pad', arp:'pluck', arpRate:4, bass:'bass', bassPat:'.xxx.xxx.xxx.xxx', bassDur:0.2, bassName:'rolling bass'},
+    techno:{chord:'shimmer', arp:'acid', arpRate:4, arpVel:0.24, bass:'sub', bassPat:'..x...x...x...x.', bassDur:0.4, bassName:'off-beat sub'},
+    prog:{chord:'pad', arp:'pluck', arpRate:2, bass:'bass', bassPat:'..x...x...x...x.', bassDur:0.4, bassName:'off-beat bass'},
+    build:{chord:'pad', arp:'pluck', arpRate:4, bass:'bass', bassPat:'..x...x...x...x.', bassDur:0.4, bassName:'off-beat bass'},
+    ambient:{chord:'shimmer', arp:'piano', arpRate:1, arpVel:0.28, bass:'sub', bassPat:'x.......x.......', bassDur:1.8, bassName:'slow sub'},
+    house:{chord:'piano', stabs:'x..x..x...x..x..', bass:'bass', bassPat:'..x...x...x...x.', bassDur:0.4, bassName:'off-beat bass'},
+    sunrise:{chord:'pad', arp:'piano', arpRate:2, bass:'bass', bassPat:'..x...x...x...x.', bassDur:0.4, bassName:'off-beat bass'},
+    deep:{chord:'piano', stabs:'..x..x....x..x..', bass:'sub', bassPat:'x.....x...x.....', bassDur:0.5, bassName:'warm sub'}
+  };
+  const INAME = {piano:'piano', pad:'dreamy pad', shimmer:'shimmer pad', acid:'acid', pluck:'pluck'};
+  const arrText = kit => { const A = ARR[kit]; return [INAME[A.chord] + (A.stabs ? ' stabs' : ''), A.arp ? INAME[A.arp] + ' arp' : null, A.bassName].filter(Boolean).join(', '); };
   function playDrums(kit, bars, beat){
     const step = beat / 4;
     const play = (pat, b) => Object.entries(pat).forEach(([kind, row]) => [...row].forEach((ch, k) => { if (ch !== '.') hit(kind, b*16*step + k*step, ch === 'x' ? 1 : 0.5); }));
@@ -1121,11 +1154,16 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     p.deg.forEach((d,i) => {
       const c = keyChords[d], at = i * bar;
       if (groove){
-        // sustained chord, off-beat bass and an eighth-note arpeggio: the basic shape of a melodic house loop
-        c.notes.forEach(m => tone(m, at, bar*0.96, 0.5));
-        for (let k = 0; k < 4; k++) tone(c.notes[0] - 12, at + beat*(k + 0.5), beat*0.42, 0.7);
-        const arp = [c.notes[0], c.notes[1], c.notes[2], c.notes[0] + 12, c.notes[2], c.notes[1], c.notes[0] + 12, c.notes[2]].map(m => m + 12);
-        arp.forEach((m,k) => tone(m, at + k*beat/2, beat*0.4, 0.32));
+        // each genre has its own instruments: chord sound (held or stabbed), bass line and arpeggio
+        const A = ARR[p.kit], s16 = beat/4;
+        if (A.stabs) [...A.stabs].forEach((ch,k) => { if (ch !== '.') c.notes.forEach(m => tone(m, at + k*s16, beat*0.45, 0.5, A.chord)); });
+        else c.notes.forEach(m => tone(m, at, bar*0.96, 0.5, A.chord));
+        const bm = c.notes[0] - (A.bass === 'sub' ? 24 : 12);
+        [...A.bassPat].forEach((ch,k) => { if (ch !== '.') tone(bm, at + k*s16, beat*A.bassDur, 0.75, A.bass); });
+        if (A.arp){
+          const seq = [c.notes[0], c.notes[1], c.notes[2], c.notes[0] + 12, c.notes[2], c.notes[1], c.notes[0] + 12, c.notes[2]].map(m => m + 12);
+          for (let k = 0; k < 4*A.arpRate; k++) tone(seq[k % 8], at + k*beat/A.arpRate, beat/A.arpRate*0.8, A.arpVel || 0.32, A.arp);
+        }
       } else {
         c.notes.forEach(m => tone(m, at, 0.95));
         tone(c.notes[0] - 12, at, 0.95, 0.45);
