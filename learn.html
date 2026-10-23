@@ -625,6 +625,8 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   const heldCount = new Map();
   const heldMidis = () => [...heldCount.keys()].sort((a,b) => a-b);
   let active = 'notes';
+  // is this part of the page visible right now? (more reliable than tracking which lesson is centred)
+  const onScreen = id => { const r = document.getElementById(id).getBoundingClientRect(); return r.bottom > 0 && r.top < (window.innerHeight || document.documentElement.clientHeight); };
   const handlers = [];
   function noteOn(m, vel){
     ensureAudio(); maybeInitMidi();
@@ -642,7 +644,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     const held = heldMidis(), id = identify(held);
     let names;
     if (id){ const sp = spell(id), pcs = QUAL[id.q].iv.map(i => (id.root + i) % 12); names = held.map(m => sp[pcs.indexOf(m % 12)] || ROOT_MAJ[m % 12]); }
-    else { const sm = active === 'scales' ? scaleSpellMap() : null; names = held.map(m => sm ? sm.get(m % 12) : ROOT_MAJ[m % 12]); }
+    else { const sm = onScreen('pianoScales') ? scaleSpellMap() : null; names = held.map(m => sm ? sm.get(m % 12) : ROOT_MAJ[m % 12]); }
     $('liveNotes').textContent = held.length ? names.join(' ') : 'nothing yet';
     $('liveChord').textContent = id ? sym(id) + ' · ' + QUAL[id.q].w : '';
     const lit = new Set(held.map(fold));
@@ -836,7 +838,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     if (chIdx >= CHALL.length){ const b = el('button', 'pill', 'Start over'); b.type = 'button'; b.addEventListener('click', () => { chIdx = 0; renderChall(); say('chStatus', `Start with ${longName(CHALL[0])}: ${spell(CHALL[0]).join(' · ')}.`, ''); }); w.appendChild(b); }
   }
   handlers.push(() => {
-    if (active !== 'chords' || chIdx >= CHALL.length) return;
+    if (chIdx >= CHALL.length || !(onScreen('chChips') || onScreen('pianoChords'))) return;
     const held = heldMidis(), pcs = new Set(held.map(m => m % 12));
     if (pcs.size < 3) return;
     const t = CHALL[chIdx];
@@ -950,7 +952,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   }
   $('galRoot').addEventListener('change', e => { galRoot = +e.target.value; renderGallery(); if (galSel){ const q = galSel; galSel = null; pickGal(q); } });
   handlers.push(() => {
-    if (active !== 'gallery' || !galSel) return;
+    if (!galSel || !(onScreen('galCards') || onScreen('pianoGallery'))) return;
     const held = heldMidis(); if (held.length < QUAL[galSel].iv.length) return;
     const t = {root:galRoot, q:galSel};
     if (setEq(new Set(held.map(m => m % 12)), chordPcs(t))) say('galStatus', `Yes, that's ${sym(t)}: ${QUAL[galSel].d}`, 'good');
