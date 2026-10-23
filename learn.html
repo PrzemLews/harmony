@@ -186,6 +186,35 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 .check{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;cursor:pointer}
 .check input{width:18px;height:18px;accent-color:var(--ink)}
 @media (prefers-reduced-motion:reduce){.sound-panel{animation:none}.sp-opt{transition:none}}
+/* chord workout */
+.workout{gap:16px;padding:20px}
+.wk-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px}
+.wk-title{font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.1;margin:2px 0 0}
+.wk-count{display:flex;flex-direction:column;gap:6px;align-items:flex-end;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;flex:0 1 260px;min-width:180px}
+.wk-bar{width:100%;height:10px;border-radius:5px;background:var(--paper-2);box-shadow:inset 0 0 0 1.5px var(--ink);overflow:hidden}
+.wk-bar i{display:block;height:100%;width:0;background:var(--leaf);transition:width .35s ease}
+.wk-rounds{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.wk-round{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1.5px solid var(--paper-2);border-radius:10px;min-width:0}
+.wk-round .wk-dot{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--ink);background:var(--sheet);font-weight:700;font-size:13px}
+.wk-rtxt{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.wk-rtxt b{font-size:13px}
+.wk-rtxt small{font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.wk-round.cur{border-color:var(--ink);background:var(--paper)}
+.wk-round.cur .wk-dot{background:var(--marigold)}
+.wk-round.done .wk-dot{background:var(--leaf);border-color:var(--leaf);color:var(--sheet)}
+.wk-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:28px 20px;border:2px solid var(--ink);border-radius:14px;background:var(--paper);transition:background .2s,transform .1s}
+.wk-sym{font-family:var(--f-chord);font-weight:700;font-size:clamp(56px,9vw,84px);line-height:1}
+.wk-name{font-size:20px;font-weight:700}
+.wk-tones{font-family:var(--f-chord);font-weight:700;font-size:26px;color:var(--ink-soft)}
+.wk-tip{font-size:15px;color:var(--ink-soft);max-width:48ch}
+.wk-card.ok{background:var(--leaf);color:var(--sheet)}
+.wk-card.ok .wk-tones,.wk-card.ok .wk-tip,.wk-card.ok .label{color:var(--sheet)}
+.wk-card.no{animation:wkShake .3s}
+.wk-card.fin{background:var(--marigold)}
+.wk-card.fin .wk-tones,.wk-card.fin .wk-tip,.wk-card.fin .label{color:var(--ink)}
+@keyframes wkShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.wk-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+@media (prefers-reduced-motion:reduce){.wk-card.no{animation:none}.wk-bar i,.wk-card{transition:none}}
 </style>
 </head>
 <body>
@@ -285,11 +314,27 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
         <div class="field" style="flex:1 1 300px;min-width:0"><span class="label">How it's built</span><span id="chordBuild"></span></div>
       </div>
       <div class="piano-wrap"><div class="piano" id="pianoChords"></div></div>
-      <div class="field">
-        <span class="label">Your turn: play these four in order, any inversion</span>
-        <div class="chips" id="chChips"></div>
+    </div>
+    <div class="tool workout" id="workout">
+      <div class="wk-head">
+        <div><span class="label">Your turn</span><h3 class="wk-title">Chord workout</h3></div>
+        <div class="wk-count"><span id="wkCount">Step 1 of 17</span><div class="wk-bar" aria-hidden="true"><i id="wkFill"></i></div></div>
       </div>
-      <p class="status" id="chStatus">Start with C major: C · E · G.</p>
+      <ol class="wk-rounds" id="wkRounds"></ol>
+      <div class="wk-card" id="wkCard" aria-live="polite">
+        <span class="label" id="wkRoundName">Round 1</span>
+        <span class="wk-sym" id="wkSym">C</span>
+        <span class="wk-name" id="wkName">C major</span>
+        <span class="wk-tones" id="wkTones"></span>
+        <span class="wk-tip" id="wkTip"></span>
+      </div>
+      <div class="wk-actions">
+        <button class="btn ghost" type="button" id="wkHear">Hear it</button>
+        <button class="btn ghost" type="button" id="wkShow">Show on keyboard</button>
+        <button class="pill" type="button" id="wkSkip">Skip this step</button>
+        <button class="pill" type="button" id="wkRestart">Start over</button>
+      </div>
+      <p class="status" id="chStatus">Play the chord on the card. Any octave and any order counts, unless the card says which note goes at the bottom.</p>
     </div>
   </section>
 
@@ -830,28 +875,99 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     later(700, () => pC.flash(v, 1000));
   });
   renderChord();
-  const CHALL = [{root:0,q:'maj'},{root:9,q:'min'},{root:5,q:'maj'},{root:7,q:'maj'}];
-  let chIdx = 0;
-  function renderChall(){
-    const w = $('chChips'); w.textContent = '';
-    CHALL.forEach((c,i) => w.appendChild(el('span', 'chip k' + (i < chIdx ? ' done' : i === chIdx ? ' cur' : ''), sym(c))));
-    if (chIdx >= CHALL.length){ const b = el('button', 'pill', 'Start over'); b.type = 'button'; b.addEventListener('click', () => { chIdx = 0; renderChall(); say('chStatus', `Start with ${longName(CHALL[0])}: ${spell(CHALL[0]).join(' · ')}.`, ''); }); w.appendChild(b); }
+  // ---------- Chord workout: rounds of steps with progress ----------
+  const ROUNDS = [
+    {name:'Major chords', tip:'Bright and stable.', steps:[{root:0,q:'maj'},{root:5,q:'maj'},{root:7,q:'maj'}]},
+    {name:'Minor chords', tip:'Same recipe, the middle note one half step lower.', steps:[{root:9,q:'min'},{root:2,q:'min'},{root:4,q:'min'}]},
+    {name:'The pop progression', tip:'C – Am – F – G: thousands of songs use this order.', steps:[{root:0,q:'maj'},{root:9,q:'min'},{root:5,q:'maj'},{root:7,q:'maj'}]},
+    {name:'Inversions', tip:'Same chord, different note at the bottom.', steps:[{root:0,q:'maj',inv:1},{root:0,q:'maj',inv:2},{root:5,q:'maj',inv:1}]},
+    {name:'Black keys', tip:'New roots bring sharps and flats into the chord.', steps:[{root:2,q:'maj'},{root:9,q:'maj'},{root:4,q:'maj'},{root:10,q:'maj'}]}
+  ];
+  const WK = []; ROUNDS.forEach((r,ri) => r.steps.forEach((st,si) => WK.push({...st, ri, si})));
+  let wkIdx = 0, wkBusy = false;
+  try { const v = parseInt(localStorage.getItem('hb-workout') || '0', 10); if (v >= 0 && v <= WK.length) wkIdx = v; } catch(e){}
+  const saveWk = () => { try { localStorage.setItem('hb-workout', String(wkIdx)); } catch(e){} };
+  const bassName = t => spell(t)[t.inv];
+  const wkSym = t => sym(t) + (t.inv ? '/' + bassName(t) : '');
+  function wkVoicing(t){
+    const base = 60 + t.root, n = QUAL[t.q].iv.map(i => base + i);
+    if (t.inv === 1) return fit([n[1], n[2], n[0] + 12]);
+    if (t.inv === 2) return fit([n[2], n[0] + 12, n[1] + 12]);
+    return fit(n);
+  }
+  function renderWorkout(){
+    const done = wkIdx >= WK.length, t = WK[Math.min(wkIdx, WK.length - 1)];
+    $('wkCount').textContent = done ? `All ${WK.length} steps done` : `Step ${wkIdx + 1} of ${WK.length}`;
+    $('wkFill').style.width = (wkIdx / WK.length * 100) + '%';
+    const ol = $('wkRounds'); ol.textContent = '';
+    ROUNDS.forEach((r,ri) => {
+      const first = WK.findIndex(x => x.ri === ri), n = r.steps.length;
+      const got = Math.max(0, Math.min(n, wkIdx - first));
+      const li = el('li', 'wk-round' + (got === n ? ' done' : (!done && t.ri === ri) ? ' cur' : ''));
+      const dot = el('span', 'wk-dot', got === n ? '✓' : String(ri + 1));
+      const txt = el('span', 'wk-rtxt'); txt.append(el('b', null, r.name), el('small', null, `${got} / ${n}`));
+      li.append(dot, txt); ol.appendChild(li);
+    });
+    const card = $('wkCard'); card.classList.remove('ok', 'no');
+    card.classList.toggle('fin', done);
+    $('wkSkip').hidden = done;
+    $('wkHear').hidden = done; $('wkShow').hidden = done;
+    if (done){
+      $('wkRoundName').textContent = 'Workout complete';
+      $('wkSym').textContent = '✓';
+      $('wkName').textContent = `You finished all ${WK.length} steps`;
+      $('wkTones').textContent = 'Majors, minors, inversions and black-key chords.';
+      $('wkTip').textContent = 'Next up: lesson 4, where these chords team up inside a key.';
+      return;
+    }
+    $('wkRoundName').textContent = `Round ${t.ri + 1} of ${ROUNDS.length} · ${ROUNDS[t.ri].name} · step ${t.si + 1} of ${ROUNDS[t.ri].steps.length}`;
+    $('wkSym').textContent = wkSym(t);
+    $('wkName').textContent = longName(t) + (t.inv ? (t.inv === 1 ? ', 1st inversion' : ', 2nd inversion') : '');
+    $('wkTones').textContent = spell(t).join(' · ');
+    $('wkTip').textContent = t.inv ? `Put ${bassName(t)} at the bottom. The slash in ${wkSym(t)} names the lowest note.` : ROUNDS[t.ri].tip;
+  }
+  function wkAdvance(){
+    wkIdx++; saveWk(); wkBusy = false; renderWorkout();
+    if (wkIdx >= WK.length) say('chStatus', 'Workout complete. Every chord in the game is built the way you just played them.', 'good');
+    else say('chStatus', WK[wkIdx].si === 0 ? `New round: ${ROUNDS[WK[wkIdx].ri].name}. ${ROUNDS[WK[wkIdx].ri].tip}` : 'Next chord on the card.', '');
   }
   handlers.push(() => {
-    if (chIdx >= CHALL.length || !(onScreen('chChips') || onScreen('pianoChords'))) return;
+    if (wkBusy || wkIdx >= WK.length || !(onScreen('workout') || onScreen('pianoChords'))) return;
     const held = heldMidis(), pcs = new Set(held.map(m => m % 12));
     if (pcs.size < 3) return;
-    const t = CHALL[chIdx];
-    if (setEq(pcs, chordPcs(t))){
-      chIdx++; renderChall();
-      if (chIdx >= CHALL.length) say('chStatus', 'All four! C, Am, F, G is one of the most used progressions in pop. You will meet it again in lesson 4.', 'good');
-      else say('chStatus', `${sym(t)}, correct. Next: ${longName(CHALL[chIdx])}, ${spell(CHALL[chIdx]).join(' · ')}.`, 'good');
+    const t = WK[wkIdx];
+    const right = setEq(pcs, chordPcs(t));
+    const bassOk = !t.inv || held[0] % 12 === (t.root + QUAL[t.q].iv[t.inv]) % 12;
+    if (right && bassOk){
+      wkBusy = true; $('wkCard').classList.add('ok');
+      say('chStatus', `${wkSym(t)}, correct.`, 'good');
+      later(700, wkAdvance);
+    } else if (right){
+      $('wkCard').classList.add('no'); setTimeout(() => $('wkCard').classList.remove('no'), 400);
+      say('chStatus', `Right notes. Now put ${bassName(t)} at the bottom: your lowest note is ${spell(t)[QUAL[t.q].iv.map(i => (t.root + i) % 12).indexOf(held[0] % 12)]}.`, 'warn');
     } else {
       const id = identify(held);
+      $('wkCard').classList.add('no'); setTimeout(() => $('wkCard').classList.remove('no'), 400);
       say('chStatus', `${id ? `That's ${sym(id)}` : 'Not quite'}. ${longName(t)} is ${spell(t).join(' · ')}.`, 'warn');
     }
   });
-  renderChall();
+  $('wkHear').addEventListener('click', () => {
+    if (wkIdx >= WK.length) return;
+    ensureAudio(); cancelSeq(); const v = wkVoicing(WK[wkIdx]);
+    v.forEach((m,i) => tone(m, i*0.16, 0.35)); v.forEach(m => tone(m, 0.6, 1.1));
+    later(600, () => pC.flash(v, 1000));
+  });
+  $('wkShow').addEventListener('click', () => {
+    if (wkIdx >= WK.length) return;
+    const t = WK[wkIdx];
+    ch.root = t.root; ch.q = t.q; ch.inv = t.inv || 0;
+    $('chordRoot').value = String(t.root); setSeg($('chordQ'), t.q); setSeg($('chordInv'), ch.inv);
+    renderChord();
+    $('pianoChords').scrollIntoView({block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  });
+  $('wkSkip').addEventListener('click', () => { if (wkIdx < WK.length){ cancelSeq(); wkAdvance(); } });
+  $('wkRestart').addEventListener('click', () => { wkIdx = 0; wkBusy = false; saveWk(); renderWorkout(); say('chStatus', 'Starting again from round 1.', ''); });
+  renderWorkout();
 
   // ---------- 4. Harmony ----------
   const pH = makePiano($('pianoHarmony'));
