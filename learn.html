@@ -184,7 +184,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 .dz-main b{font-size:15px}
 .dz-main span{font-size:14px;color:var(--ink-soft);max-width:70ch}
 .dz-pick{color:var(--ink);font-weight:700;text-decoration:underline;cursor:pointer}
-#dzFile{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.dz-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .dz-ctrl{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 16px}
 .tone-field{gap:6px}
 .tone-field input{width:100%;accent-color:var(--ink)}
@@ -366,18 +366,19 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
         <div class="field"><span class="label">Playback</span><div class="seg" id="keyGroove"><button type="button" data-v="1" aria-pressed="true">Full groove</button><button type="button" data-v="0" aria-pressed="false">Chords only</button></div></div>
       </div>
       <p class="help">Tap a chord to hear it and see it on the keyboard. Full groove plays each progression with its genre's own sounds, drums and tempo. Chords only, and tapping a chord, use the sound you picked in the Sound panel.</p>
-      <div class="dropzone" id="dropZone">
+      <div class="dropzone">
         <div class="dz-main">
-          <b id="dzTitle">Play the chords with your own sample</b>
-          <span id="dzText">Drag an audio file here (WAV, MP3, OGG, M4A, ideally one clear note) and every chord in this lesson plays with it. Or <label class="dz-pick" for="dzFile">choose a file</label>. It stays in your browser and is never uploaded.</span>
-          <input type="file" id="dzFile" accept="audio/*,.wav,.mp3,.ogg,.m4a,.aif,.aiff,.flac">
+          <b class="dz-title">Play the chords with your own sample</b>
+          <span class="dz-text">Drag an audio file here (WAV, MP3, OGG, M4A, ideally one clear note) and the chords in this lesson play with it. Or <label class="dz-pick" for="dzFileH">choose a file</label>. It stays in your browser and is never uploaded.</span>
+          <input type="file" class="dz-file" id="dzFileH" accept="audio/*,.wav,.mp3,.ogg,.m4a,.aif,.aiff,.flac">
         </div>
-        <div class="dz-ctrl" id="dzCtrl" hidden>
-          <label class="field"><span class="label">Sample's own note</span><select id="dzRoot"></select></label>
-          <label class="check"><input type="checkbox" id="dzLoop"> Loop while held</label>
-          <button class="pill" type="button" id="dzPlay">Preview</button>
-          <button class="pill" type="button" id="dzRemove">Remove sample</button>
+        <div class="dz-ctrl" hidden>
+          <label class="field"><span class="label">Sample's own note</span><select class="dz-root" aria-label="Sample's own note"></select></label>
+          <label class="check"><input type="checkbox" class="dz-loop"> Loop while held</label>
+          <button class="pill dz-play" type="button">Preview</button>
+          <button class="pill dz-remove" type="button">Remove sample</button>
         </div>
+      </div>
       </div>
       <div class="cards" id="keyCards"></div>
       <div class="piano-wrap"><div class="piano" id="pianoHarmony"></div></div>
@@ -399,6 +400,19 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <div class="controls">
         <label class="field"><span class="label">Root</span><select id="galRoot"></select></label>
         <p class="help" style="flex:1 1 240px">Tap a chord to hear it, then try playing it yourself.</p>
+      </div>
+      <div class="dropzone">
+        <div class="dz-main">
+          <b class="dz-title">Play the chords with your own sample</b>
+          <span class="dz-text">Drag an audio file here (WAV, MP3, OGG, M4A, ideally one clear note) and the gallery chords play with it. Or <label class="dz-pick" for="dzFileG">choose a file</label>. It stays in your browser and is never uploaded.</span>
+          <input type="file" class="dz-file" id="dzFileG" accept="audio/*,.wav,.mp3,.ogg,.m4a,.aif,.aiff,.flac">
+        </div>
+        <div class="dz-ctrl" hidden>
+          <label class="field"><span class="label">Sample's own note</span><select class="dz-root" aria-label="Sample's own note"></select></label>
+          <label class="check"><input type="checkbox" class="dz-loop"> Loop while held</label>
+          <button class="pill dz-play" type="button">Preview</button>
+          <button class="pill dz-remove" type="button">Remove sample</button>
+        </div>
       </div>
       <div class="cards wide" id="galCards"></div>
       <div class="piano-wrap"><div class="piano" id="pianoGallery"></div></div>
@@ -1235,10 +1249,23 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   onSeg($('keyGroove'), v => { groove = v === '1'; cancelSeq(); });
   renderKey();
 
-  // ---------- custom sample drop zone ----------
+  // ---------- custom sample drop zones (one shared sample for every zone on the page) ----------
   const SH = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
-  for (let m = 24; m <= 96; m++){ const o = el('option', null, SH[m % 12] + (Math.floor(m/12) - 1)); o.value = m; $('dzRoot').appendChild(o); }
-  $('dzRoot').value = '60';
+  const zones = [...document.querySelectorAll('.dropzone')];
+  const DZ_TITLE = 'Play the chords with your own sample';
+  let sampleName = '', zoneMsg = '';
+  zones.forEach(z => { const sel = z.querySelector('.dz-root'); for (let m = 24; m <= 96; m++){ const o = el('option', null, SH[m % 12] + (Math.floor(m/12) - 1)); o.value = m; sel.appendChild(o); } });
+  const defaultText = new Map(zones.map(z => [z, z.querySelector('.dz-text').innerHTML]));
+  function renderZones(){
+    zones.forEach(z => {
+      z.classList.toggle('loaded', !!sampleBuf);
+      z.querySelector('.dz-ctrl').hidden = !sampleBuf;
+      z.querySelector('.dz-title').textContent = sampleBuf ? `Using your sample: ${sampleName}` : DZ_TITLE;
+      if (zoneMsg) z.querySelector('.dz-text').textContent = zoneMsg; else z.querySelector('.dz-text').innerHTML = defaultText.get(z);
+      z.querySelector('.dz-root').value = String(sampleRoot);
+      z.querySelector('.dz-loop').checked = sampleLoop;
+    });
+  }
   function detectPitch(buf){
     // autocorrelation on a short slice after the attack; returns a MIDI note or null
     const sr = buf.sampleRate, start = Math.min(Math.floor(sr*0.08), Math.max(0, buf.length - 4096)), N = Math.min(4096, buf.length - start);
@@ -1261,38 +1288,38 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   }
   async function loadSample(file){
     if (!file) return;
-    if (!/^audio\//.test(file.type) && !/\.(wav|mp3|ogg|m4a|aiff?|flac)$/i.test(file.name)){ $('dzText').textContent = `${file.name} isn't an audio file. Try a WAV, MP3, OGG or M4A.`; return; }
+    if (!/^audio\//.test(file.type) && !/\.(wav|mp3|ogg|m4a|aiff?|flac)$/i.test(file.name)){ zoneMsg = `${file.name} isn't an audio file. Try a WAV, MP3, OGG or M4A.`; renderZones(); return; }
     ensureAudio();
-    if (!AC){ $('dzText').textContent = 'Audio is not available in this browser.'; return; }
-    $('dzText').textContent = `Loading ${file.name}…`;
+    if (!AC){ zoneMsg = 'Audio is not available in this browser.'; renderZones(); return; }
+    zoneMsg = `Loading ${file.name}…`; renderZones();
     try {
       const data = await file.arrayBuffer();
       const buf = await new Promise((res, rej) => { const p = AC.decodeAudioData(data, res, rej); if (p && p.then) p.then(res, rej); });
-      sampleBuf = buf;
+      cancelSeq();
+      sampleBuf = buf; sampleName = file.name;
       const guess = detectPitch(buf);
-      sampleRoot = guess || 60; $('dzRoot').value = String(sampleRoot);
-      $('dzTitle').textContent = `Using your sample: ${file.name}`;
-      $('dzText').textContent = (guess ? `Detected its note as ${SH[guess % 12]}${Math.floor(guess/12) - 1}. ` : `Couldn't detect its note, so it's set to C4. `) + `If chords sound out of tune, change "Sample's own note". Drop another file to replace it.`;
-      $('dzCtrl').hidden = false; $('dropZone').classList.add('loaded');
-      say('keyStatus', `Chords now play with ${file.name} (${buf.duration.toFixed(1)} s). Tap a chord or press Play.`, 'good');
+      sampleRoot = guess || 60;
+      zoneMsg = (guess ? `Detected its note as ${SH[guess % 12]}${Math.floor(guess/12) - 1}. ` : `Couldn't detect its note, so it's set to C4. `) + `It plays the Harmony and Chord gallery chords. If they sound out of tune, change "Sample's own note". Drop another file to replace it.`;
+      renderZones();
     } catch(err){
-      $('dzText').textContent = `Couldn't read ${file.name}. The browser may not support that format. Try WAV or MP3.`;
+      zoneMsg = `Couldn't read ${file.name}. The browser may not support that format. Try WAV or MP3.`; renderZones();
     }
   }
-  const dz = $('dropZone');
-  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
-  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
-  dz.addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files[0]; loadSample(f); });
-  $('dzFile').addEventListener('change', e => { loadSample(e.target.files[0]); e.target.value = ''; });
-  $('dzRoot').addEventListener('change', e => { sampleRoot = +e.target.value; });
-  $('dzLoop').addEventListener('change', e => { sampleLoop = e.target.checked; });
-  $('dzPlay').addEventListener('click', () => { if (!sampleBuf) return; ensureAudio(); cancelSeq(); tone(sampleRoot, 0, Math.min(2, sampleBuf.duration), 0.7, 'sample'); });
-  $('dzRemove').addEventListener('click', () => {
-    cancelSeq(); sampleBuf = null;
-    $('dzTitle').textContent = 'Play the chords with your own sample';
-    $('dzText').textContent = 'Sample removed. Chords use the genre sounds again. Drag in another audio file any time.';
-    $('dzCtrl').hidden = true; dz.classList.remove('loaded');
+  zones.forEach(z => {
+    ['dragenter','dragover'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('drag'); }));
+    ['dragleave','drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('drag'); }));
+    z.addEventListener('drop', e => loadSample(e.dataTransfer && e.dataTransfer.files[0]));
+    z.querySelector('.dz-file').addEventListener('change', e => { loadSample(e.target.files[0]); e.target.value = ''; });
+    z.querySelector('.dz-root').addEventListener('change', e => { sampleRoot = +e.target.value; renderZones(); });
+    z.querySelector('.dz-loop').addEventListener('change', e => { sampleLoop = e.target.checked; renderZones(); });
+    z.querySelector('.dz-play').addEventListener('click', () => { if (!sampleBuf) return; ensureAudio(); cancelSeq(); tone(sampleRoot, 0, Math.min(2, sampleBuf.duration), 0.7, 'sample'); });
+    z.querySelector('.dz-remove').addEventListener('click', () => {
+      cancelSeq(); sampleBuf = null; sampleName = '';
+      zoneMsg = 'Sample removed. Chords use the built-in sounds again. Drag in another audio file any time.';
+      renderZones();
+    });
   });
+  renderZones();
 
   // ---------- 5. Gallery ----------
   const pG = makePiano($('pianoGallery'));
@@ -1314,7 +1341,8 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     const c = {root:galRoot, q}, notes = fit(QUAL[q].iv.map(i => 60 + galRoot + i));
     const marks = new Map(); notes.forEach((m,k) => marks.set(m, QUAL[q].f[k])); pG.marks(marks);
     const gm = spellMap(spell(c), QUAL[q].iv.map(i => (galRoot + i) % 12)); pG.names(m => gm.get(m % 12));
-    notes.forEach((m,i) => tone(m, i*0.12, 0.3)); notes.forEach(m => tone(m, 0.6, 1.1));
+    const snd = sampleBuf ? 'sample' : undefined;
+    notes.forEach((m,i) => tone(m, i*0.12, 0.3, 0.6, snd)); notes.forEach(m => tone(m, 0.6, 1.1, 0.6, snd));
     later(600, () => pG.flash(notes, 1000));
     say('galStatus', `${longName(c)} (${sym(c)}): ${spell(c).join(' · ')}. Now play it yourself.`, '');
   }
