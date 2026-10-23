@@ -160,6 +160,25 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   .prog .btn{grid-row:1/span 3;grid-column:2}
 }
 @media (prefers-reduced-motion:reduce){.btn,.dot{transition:none}}
+/* sound side panel */
+[hidden]{display:none!important}
+.scrim{position:fixed;inset:0;z-index:35;background:rgba(30,42,69,.28)}
+.sound-panel{position:fixed;top:0;right:0;bottom:0;z-index:40;width:min(360px,100%);overflow-y:auto;background:var(--sheet);border-left:2px solid var(--ink);box-shadow:-6px 0 0 var(--ink);display:flex;flex-direction:column;gap:14px;padding-top:calc(18px + env(safe-area-inset-top,0px));padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));padding-left:18px;padding-right:max(18px,env(safe-area-inset-right,0px));animation:spIn .18s ease-out}
+@keyframes spIn{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+.sp-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sp-head h2{font-size:28px}
+.sp-close{font:inherit;font-size:16px;font-weight:700;width:36px;height:36px;border-radius:50%;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer}
+.sp-list{display:flex;flex-direction:column;gap:10px}
+.sp-opt{font:inherit;color:var(--ink);text-align:left;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;row-gap:1px;align-items:center;padding:12px;border:1.5px solid var(--ink);border-radius:12px;background:var(--sheet);cursor:pointer;transition:transform .08s,box-shadow .08s}
+.sp-opt .ic{grid-row:1/span 2;width:42px;height:42px;border-radius:10px;background:var(--paper-2);display:grid;place-items:center}
+.sp-opt b{font-size:16px;line-height:1.2}
+.sp-opt .d{font-size:13px;line-height:1.35;color:var(--ink-soft)}
+.sp-opt[aria-checked="true"]{background:var(--marigold);box-shadow:3px 3px 0 var(--ink)}
+.sp-opt[aria-checked="true"] .ic{background:var(--sheet)}
+.sp-opt[aria-checked="true"] .d{color:var(--ink)}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.sound-panel{animation:none}.sp-opt{transition:none}}
 </style>
 </head>
 <body>
@@ -174,7 +193,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     </div>
     <div class="top-actions">
       <button class="pill" id="midiPill" type="button" data-state="idle"><span class="dot" id="midiDot"></span><span id="midiText">MIDI: press to connect</span></button>
-      <button class="pill" id="soundBtn" type="button" aria-pressed="true"><span id="soundText">Sound on</span></button>
+      <button class="pill" id="soundBtn" type="button" aria-haspopup="dialog" aria-controls="soundPanel" aria-expanded="false"><span aria-hidden="true">♪</span><span id="soundText">Sound: Classic piano</span></button>
     </div>
   </div>
 </header>
@@ -316,6 +335,15 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   </div>
 </main>
 
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sound-panel" id="soundPanel" role="dialog" aria-labelledby="spTitle" hidden>
+  <div class="sp-head"><h2 id="spTitle">Sound</h2><button class="sp-close" id="spClose" type="button" aria-label="Close sound panel">✕</button></div>
+  <p class="help">Choose how the keyboard sounds. Picking one plays a short C major preview.</p>
+  <div class="sp-list" id="spList" role="radiogroup" aria-label="Sound type"></div>
+  <label class="check"><input type="checkbox" id="muteBox"> Mute all sound</label>
+  <p class="help">Your choice is remembered on this device.</p>
+</aside>
+
 <script>
 (() => {
   // ---------- Theory ----------
@@ -378,47 +406,100 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   function fillRoots(sel, names){ names.forEach((n,i) => { const o = el('option', null, n); o.value = i; sel.appendChild(o); }); }
 
   // ---------- Audio ----------
-  let AC = null, master = null, drive = null, soundOn = true;
+  let AC = null, master = null, drive = null, verb = null, soundOn = true;
   const voices = new Map();
   let scheduled = [];
+  const SOUNDS = {
+    piano:{name:'Classic piano', desc:'Clear attack that fades away, like a real string.', icon:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v8M12 5v8M16 5v8"/>', rel:0.09},
+    pad:{name:'Dreamy pad', desc:'Slow, soft swell with a wide, airy tail.', icon:'<path d="M2 12C5 4 9 4 12 12S19 20 22 12"/>', rel:0.6},
+    acid:{name:'Acid lead', desc:'Squelchy resonant synth with a filter snap and grit.', icon:'<path d="M2 17L8 7V17L14 7V17L20 7V17"/>', rel:0.07},
+    bass:{name:'Bouncy bass', desc:'Round, punchy bass, played one octave lower.', icon:'<path d="M2 16H7V8H12V16H17V8H22"/>', rel:0.06}
+  };
+  let soundKey = 'piano';
+  try { const sv = localStorage.getItem('hb-sound'); if (sv && SOUNDS[sv]) soundKey = sv; } catch(e){}
   function ensureAudio(){
     if (!AC){
       try {
         AC = new (window.AudioContext || window.webkitAudioContext)();
         master = AC.createGain(); master.gain.value = 0.3;
         const comp = AC.createDynamicsCompressor(); master.connect(comp); comp.connect(AC.destination);
-        // gentle tanh saturation, the grit of an overdriven acid line
+        // gentle tanh saturation for the acid lead
         drive = AC.createWaveShaper();
         const curve = new Float32Array(1024);
         for (let i = 0; i < curve.length; i++){ const x = i / (curve.length - 1) * 2 - 1; curve[i] = Math.tanh(2.5 * x); }
         drive.curve = curve; drive.oversample = '2x'; drive.connect(master);
+        // a small generated room reverb for piano and pad
+        verb = AC.createConvolver();
+        const len = Math.floor(AC.sampleRate * 2.4), ir = AC.createBuffer(2, len, AC.sampleRate);
+        for (let c = 0; c < 2; c++){ const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random()*2 - 1) * Math.pow(1 - i/len, 3); }
+        verb.buffer = ir;
+        const vg = AC.createGain(); vg.gain.value = 0.45; verb.connect(vg); vg.connect(master);
       } catch(e){ AC = null; }
     }
     if (AC && AC.state === 'suspended') AC.resume().catch(() => {});
   }
-  function makeVoice(m, t, vel){
-    const f = 440 * Math.pow(2, (m - 69)/12);
-    // Acid bass voice: sawtooth through a resonant low-pass filter whose cutoff snaps down after each note
-    const o1 = AC.createOscillator(), o2 = AC.createOscillator(), filt = AC.createBiquadFilter(), g = AC.createGain(), g2 = AC.createGain();
-    o1.type = 'sawtooth'; o1.frequency.value = f;
-    o2.type = 'square'; o2.frequency.value = f; o2.detune.value = -6; g2.gain.value = 0.15;
-    filt.type = 'lowpass'; filt.Q.value = 14;
-    const peak = Math.min(9000, f*6 + 2200*vel), floor = Math.max(140, f*1.3);
-    filt.frequency.setValueAtTime(peak, t);
-    filt.frequency.exponentialRampToValueAtTime(floor, t + 0.28);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.32*vel, t + 0.005); g.gain.setTargetAtTime(0.22*vel, t + 0.01, 0.15);
-    o1.connect(filt); o2.connect(g2); g2.connect(filt); filt.connect(g); g.connect(drive || master);
-    o1.start(t); o2.start(t);
-    return {o1, o2, g};
+  const hz = m => 440 * Math.pow(2, (m - 69)/12);
+  function osc(type, f, t, detune){ const o = AC.createOscillator(); o.type = type; o.frequency.value = f; if (detune) o.detune.value = detune; o.start(t); return o; }
+  function mixInto(oscs, levels, dest){ oscs.forEach((o,i) => { const g = AC.createGain(); g.gain.value = levels[i]; o.connect(g); g.connect(dest); }); }
+  function send(node, amount){ const sg = AC.createGain(); sg.gain.value = amount; node.connect(sg); sg.connect(verb); }
+  const MAKERS = {
+    piano(m, t, vel){
+      const f = hz(m), g = AC.createGain(), filt = AC.createBiquadFilter();
+      const o = [osc('triangle', f, t), osc('sine', f, t, 4), osc('sine', f*2, t), osc('sine', f*3, t)];
+      mixInto(o, [0.6, 0.35, 0.18, 0.06], filt);
+      filt.type = 'lowpass'; filt.Q.value = 0.7;
+      filt.frequency.setValueAtTime(Math.min(12000, f*10), t); filt.frequency.exponentialRampToValueAtTime(Math.max(300, f*2.5), t + 1.2);
+      const decay = Math.max(0.6, 2.6 - (m - 48)*0.03);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5*vel, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0008, t + decay);
+      o.forEach(x => x.stop(t + decay + 0.1));
+      filt.connect(g); g.connect(master); send(g, 0.18);
+      return {g, oscs:o};
+    },
+    pad(m, t, vel){
+      const f = hz(m), g = AC.createGain(), filt = AC.createBiquadFilter();
+      const o = [osc('sawtooth', f, t, -9), osc('sawtooth', f, t, 9), osc('triangle', f/2, t)];
+      mixInto(o, [0.3, 0.3, 0.25], filt);
+      filt.type = 'lowpass'; filt.Q.value = 1; filt.frequency.value = Math.min(4000, f*3);
+      const lfo = osc('sine', 0.25, t), lg = AC.createGain(); lg.gain.value = Math.min(1500, f*0.8); lfo.connect(lg); lg.connect(filt.frequency);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.26*vel, t + 0.45);
+      filt.connect(g); g.connect(master); send(g, 0.6);
+      return {g, oscs:[...o, lfo]};
+    },
+    acid(m, t, vel){
+      const f = hz(m), g = AC.createGain(), filt = AC.createBiquadFilter();
+      const o = [osc('sawtooth', f, t), osc('square', f, t, -6)];
+      mixInto(o, [1, 0.15], filt);
+      filt.type = 'lowpass'; filt.Q.value = 14;
+      filt.frequency.setValueAtTime(Math.min(9000, f*6 + 2200*vel), t); filt.frequency.exponentialRampToValueAtTime(Math.max(140, f*1.3), t + 0.28);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.32*vel, t + 0.005); g.gain.setTargetAtTime(0.22*vel, t + 0.01, 0.15);
+      filt.connect(g); g.connect(drive);
+      return {g, oscs:o};
+    },
+    bass(m, t, vel){
+      const f = hz(m - 12), g = AC.createGain(), filt = AC.createBiquadFilter();
+      const o = [osc('square', f, t), osc('sine', f, t)];
+      o.forEach(x => { x.frequency.setValueAtTime(f*1.04, t); x.frequency.exponentialRampToValueAtTime(f, t + 0.04); });
+      mixInto(o, [0.35, 0.6], filt);
+      filt.type = 'lowpass'; filt.Q.value = 6;
+      filt.frequency.setValueAtTime(Math.min(5000, f*14), t); filt.frequency.exponentialRampToValueAtTime(Math.max(120, f*2), t + 0.14);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.55*vel, t + 0.004); g.gain.setTargetAtTime(0.3*vel, t + 0.02, 0.12);
+      filt.connect(g); g.connect(master);
+      return {g, oscs:o};
+    }
+  };
+  function makeVoice(m, t, vel){ const v = MAKERS[soundKey](m, t, vel); v.rel = SOUNDS[soundKey].rel; return v; }
+  function release(v, t, tc){
+    const r = tc != null ? tc : v.rel;
+    v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(v.g.gain.value, t); v.g.gain.setTargetAtTime(0, t, r);
+    v.oscs.forEach(o => { try { o.stop(t + r*8); } catch(e){} });
   }
-  function release(v, t, tc){ v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(v.g.gain.value, t); v.g.gain.setTargetAtTime(0, t, tc); try { v.o1.stop(t + tc*7); v.o2.stop(t + tc*7); } catch(e){} }
   function playVoice(m, vel){ if (!AC || !soundOn) return; stopVoice(m); voices.set(m, makeVoice(m, AC.currentTime, vel)); }
-  function stopVoice(m){ const v = voices.get(m); if (!v || !AC) return; release(v, AC.currentTime, 0.07); voices.delete(m); }
+  function stopVoice(m){ const v = voices.get(m); if (!v || !AC) return; release(v, AC.currentTime); voices.delete(m); }
   function tone(m, at, dur, vel){
     if (!AC || !soundOn) return;
     const t = AC.currentTime + at, v = makeVoice(m, t, vel || 0.6);
-    v.g.gain.setTargetAtTime(0, t + dur, 0.08);
-    v.o1.stop(t + dur + 0.6); v.o2.stop(t + dur + 0.6);
+    v.g.gain.setTargetAtTime(0, t + dur, v.rel);
+    v.oscs.forEach(o => { try { o.stop(t + dur + v.rel*8); } catch(e){} });
     scheduled.push(v);
   }
   let seqTimers = [];
@@ -429,12 +510,41 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     document.querySelectorAll('.key.play,.ccard.play').forEach(e => e.classList.remove('play'));
   }
   const later = (ms, fn) => seqTimers.push(setTimeout(fn, ms));
-  $('soundBtn').addEventListener('click', e => {
-    soundOn = !soundOn;
-    e.currentTarget.setAttribute('aria-pressed', String(soundOn));
-    $('soundText').textContent = soundOn ? 'Sound on' : 'Sound off';
-    if (!soundOn){ [...voices.keys()].forEach(stopVoice); cancelSeq(); } else ensureAudio();
+
+  // ---------- Sound panel ----------
+  const panel = $('soundPanel'), scrim = $('scrim'), spList = $('spList');
+  function renderSoundUI(){
+    $('soundText').textContent = soundOn ? `Sound: ${SOUNDS[soundKey].name}` : 'Sound: muted';
+    spList.querySelectorAll('.sp-opt').forEach(b => b.setAttribute('aria-checked', String(b.dataset.k === soundKey)));
+    $('muteBox').checked = !soundOn;
+  }
+  Object.entries(SOUNDS).forEach(([k, snd]) => {
+    const b = el('button', 'sp-opt'); b.type = 'button'; b.setAttribute('role', 'radio'); b.dataset.k = k;
+    b.innerHTML = `<span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${snd.icon}</svg></span><b></b><span class="d"></span>`;
+    b.querySelector('b').textContent = snd.name; b.querySelector('.d').textContent = snd.desc;
+    b.addEventListener('click', () => chooseSound(k));
+    spList.appendChild(b);
   });
+  function chooseSound(k){
+    [...voices.keys()].forEach(stopVoice); cancelSeq();
+    soundKey = k;
+    try { localStorage.setItem('hb-sound', k); } catch(e){}
+    if (!soundOn) soundOn = true;
+    renderSoundUI(); ensureAudio();
+    [60,64,67].forEach((m,i) => tone(m, i*0.15, 0.4)); [60,64,67].forEach(m => tone(m, 0.5, 0.9));
+  }
+  $('muteBox').addEventListener('change', e => {
+    soundOn = !e.target.checked;
+    if (!soundOn){ [...voices.keys()].forEach(stopVoice); cancelSeq(); } else ensureAudio();
+    renderSoundUI();
+  });
+  function openPanel(){ panel.hidden = false; scrim.hidden = false; $('soundBtn').setAttribute('aria-expanded', 'true'); (spList.querySelector('[aria-checked="true"]') || spList.firstChild).focus(); }
+  function closePanel(){ if (panel.hidden) return; panel.hidden = true; scrim.hidden = true; $('soundBtn').setAttribute('aria-expanded', 'false'); $('soundBtn').focus(); }
+  $('soundBtn').addEventListener('click', () => panel.hidden ? openPanel() : closePanel());
+  $('spClose').addEventListener('click', closePanel);
+  scrim.addEventListener('click', closePanel);
+  addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+  renderSoundUI();
 
   // ---------- Pianos ----------
   const LO = 60, HI = 88;
