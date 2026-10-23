@@ -105,6 +105,7 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 .steps .n.done{color:var(--leaf)}
 .steps .s{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--paper-2);color:var(--ink-soft)}
 .steps .s.h{background:var(--marigold);color:var(--ink)}
+.steps .s.x{background:var(--ink);color:var(--sheet)}
 
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
 .cards.wide{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
@@ -294,14 +295,23 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <p>A <span class="term">scale</span> is a set of seven notes picked out of the twelve, played in order. Which seven you pick follows a fixed pattern of whole steps (W) and half steps (H).</p>
       <p>The <b>major scale</b> follows <b>W W H W W W H</b>. It sounds bright and settled. Start it on C and you get only white keys: C D E F G A B C. The <b>natural minor scale</b> follows <b>W H W W H W W</b> and sounds darker. Start the same pattern on any other key and black keys appear, because the pattern stays the same.</p>
       <p>Each note of a scale has a number called its <span class="term">degree</span>. The first note, 1, is the <span class="term">root</span> or home note. The scale gives a song its <span class="term">key</span>: a song "in C major" mostly uses the notes of the C major scale.</p>
+      <p>Not every musical culture uses these two scales, or even seven notes. Japanese, Chinese and Indonesian music often use <b>five-note (pentatonic) scales</b> with wider gaps, and Indian ragas and Arabic maqams use their own step patterns. Some traditions, like gamelan tuning or the quarter tones of Arabic music, use pitches that fall between the piano's keys. Pick a world scale below to hear its closest piano version.</p>
     </div>
     <div class="tool">
       <div class="controls">
         <label class="field"><span class="label">Start on</span><select id="scaleRoot"></select></label>
-        <div class="field"><span class="label">Scale</span><div class="seg" id="scaleType"><button type="button" data-v="major" aria-pressed="true">Major</button><button type="button" data-v="minor" aria-pressed="false">Natural minor</button></div></div>
+        <label class="field"><span class="label">Scale</span><select id="scaleType">
+          <optgroup label="Western"><option value="major" selected>Major</option><option value="minor">Natural minor</option></optgroup>
+          <optgroup label="Japan"><option value="hirajoshi">Hirajōshi</option><option value="insen">In (Miyako-bushi)</option></optgroup>
+          <optgroup label="China"><option value="gong">Gong pentatonic</option></optgroup>
+          <optgroup label="Indonesia (gamelan)"><option value="pelog">Pelog</option><option value="slendro">Slendro</option></optgroup>
+          <optgroup label="Middle East"><option value="hijaz">Hijaz (maqam)</option></optgroup>
+          <optgroup label="India (raga)"><option value="bhairav">Bhairav</option><option value="yaman">Yaman</option><option value="bhairavi">Bhairavi</option></optgroup>
+        </select></label>
         <button class="btn ghost" type="button" id="scaleHear">Hear it</button>
         <button class="btn" type="button" id="scalePlay">Play along</button>
       </div>
+      <p class="help" id="scaleInfo"></p>
       <div class="steps" id="scaleSteps"></div>
       <div class="piano-wrap"><div class="piano" id="pianoScales"></div></div>
       <p class="status" id="scaleStatus">Press Play along, then play the scale from the root up to the root an octave higher.</p>
@@ -487,11 +497,24 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     }
     return best;
   }
+  // deg = which letter each note uses (0 = root letter); needed to spell five-note scales correctly
   const SCALES = {
-    major:{w:'major', iv:[0,2,4,5,7,9,11], names:ROOT_MAJ},
-    minor:{w:'natural minor', iv:[0,2,3,5,7,8,10], names:ROOT_MIN}
+    major:{w:'major', iv:[0,2,4,5,7,9,11], names:ROOT_MAJ, info:'The bright, settled scale behind most Western pop and classical music.'},
+    minor:{w:'natural minor', iv:[0,2,3,5,7,8,10], names:ROOT_MIN, info:'Darker and more emotional. The home of most melodic techno and trance.'},
+    hirajoshi:{w:'Hirajōshi', iv:[0,2,3,7,8], deg:[0,1,2,4,5], names:ROOT_MAJ, info:'Japan. Five notes with wide gaps and two half steps. Calm and haunting, heard in koto music.'},
+    insen:{w:'In (Miyako-bushi)', iv:[0,1,5,7,8], deg:[0,1,3,4,5], names:ROOT_MAJ, info:'Japan. Five notes that open with a half step. Dark and dramatic, used in traditional koto and shamisen music.'},
+    gong:{w:'Gong pentatonic', iv:[0,2,4,7,9], deg:[0,1,2,4,5], names:ROOT_MAJ, info:'China. Five notes and no half steps, open and bright. Start it on F♯ and you play only black keys.'},
+    pelog:{w:'Pelog', iv:[0,1,3,7,8], deg:[0,1,2,4,5], names:ROOT_MAJ, info:'Indonesia (gamelan). Real pelog tuning falls between piano keys and differs from one gamelan to the next, so this is its closest piano version.'},
+    slendro:{w:'Slendro', iv:[0,2,5,7,9], deg:[0,1,3,4,5], names:ROOT_MAJ, info:'Indonesia (gamelan). Five almost equal steps, which a piano can only approximate.'},
+    hijaz:{w:'Hijaz', iv:[0,1,4,5,7,8,10], names:ROOT_MAJ, info:'Middle East (Arabic maqam). The wide 1½-step jump from the 2nd to the 3rd note gives its famous sound, also heard in Turkish, Jewish and flamenco music. Real maqam tuning can differ slightly from the piano.'},
+    bhairav:{w:'Bhairav', iv:[0,1,4,5,7,8,11], names:ROOT_MAJ, info:'India (raga). A morning raga with two 1½-step gaps. A raga is more than its notes, with rules for melody and mood, so this is its set of pitches.'},
+    yaman:{w:'Yaman', iv:[0,2,4,6,7,9,11], names:ROOT_MAJ, info:'India (raga). An evening raga. Its raised 4th gives a bright, floating feel, like the Western Lydian mode.'},
+    bhairavi:{w:'Bhairavi', iv:[0,1,3,5,7,8,10], names:ROOT_MAJ, info:'India (raga). Often played to close a concert. Tender and devotional, with the same notes as the Western Phrygian mode.'}
   };
-  const spellScale = (root, type) => spellFrom(SCALES[type].names[root], root, SCALES[type].iv, [0,1,2,3,4,5,6]);
+  const spellScale = (root, type) => spellFrom(SCALES[type].names[root], root, SCALES[type].iv, SCALES[type].deg || [0,1,2,3,4,5,6]);
+  // degree labels relative to the major scale: 1 2 ♭3 5 ♭6 …
+  const MAJ_IV = [0,2,4,5,7,9,11];
+  const scaleDegrees = type => { const S = SCALES[type], dg = S.deg || [0,1,2,3,4,5,6]; return S.iv.map((v,i) => { let d = v - MAJ_IV[dg[i]]; return ACC[d] + (dg[i] + 1); }); };
   const IVNAMES = ['unison','minor 2nd','major 2nd','minor 3rd','major 3rd','perfect 4th','tritone','perfect 5th','minor 6th','major 6th','minor 7th','major 7th','octave'];
   const IVNOTE = ['same note','half step','whole step','','','','','','','','','',''];
   const noteName = m => BOTH[m % 12] + (Math.floor(m/12) - 1);
@@ -891,21 +914,26 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     pcs.forEach((pc,i) => map.set(pc, names[i]));
     return map;
   }
+  const STEP_LABEL = {1:'H', 2:'W', 3:'1½', 4:'2W', 5:'2½'};
+  const scaleLabel = () => `${SCALES[sc.type].names[sc.root]} ${SCALES[sc.type].w}`;
   function renderScale(){
-    const names = spellScale(sc.root, sc.type), iv = SCALES[sc.type].iv;
+    const names = spellScale(sc.root, sc.type), iv = SCALES[sc.type].iv, n = iv.length;
     const opt = $('scaleRoot').options; for (let i = 0; i < 12; i++) opt[i].textContent = SCALES[sc.type].names[i];
+    $('scaleInfo').textContent = SCALES[sc.type].info + (n === 5 ? ' (5 notes)' : '');
     const wrap = $('scaleSteps'); wrap.textContent = '';
     const full = [...names, names[0]], steps = [...iv.slice(1), 12].map((v,i) => v - iv[i]);
-    full.forEach((n,i) => {
-      wrap.appendChild(el('span', 'n' + (sc.practice > i ? ' done' : ''), n));
-      if (i < 7) wrap.appendChild(el('span', 's' + (steps[i] === 1 ? ' h' : ''), steps[i] === 1 ? 'H' : 'W'));
+    full.forEach((nm,i) => {
+      wrap.appendChild(el('span', 'n' + (sc.practice > i ? ' done' : ''), nm));
+      if (i < n) wrap.appendChild(el('span', 's' + (steps[i] === 1 ? ' h' : steps[i] > 2 ? ' x' : ''), STEP_LABEL[steps[i]] || steps[i]));
     });
-    const marks = new Map(); scaleNotes().forEach((m,i) => marks.set(m, String(i === 7 ? 1 : i + 1)));
+    const deg = scaleDegrees(sc.type), marks = new Map();
+    scaleNotes().forEach((m,i) => marks.set(m, i === n ? '1' : deg[i]));
     pS.marks(marks);
     const sm = scaleSpellMap(); pS.names(m => sm.get(m % 12));
   }
-  $('scaleRoot').addEventListener('change', e => { sc.root = +e.target.value; sc.practice = -1; renderScale(); say('scaleStatus', `${SCALES[sc.type].names[sc.root]} ${SCALES[sc.type].w}: ${spellScale(sc.root, sc.type).join(' ')}.`, ''); });
-  onSeg($('scaleType'), v => { sc.type = v; sc.practice = -1; renderScale(); say('scaleStatus', `${SCALES[sc.type].names[sc.root]} ${SCALES[sc.type].w}: ${spellScale(sc.root, sc.type).join(' ')}.`, ''); });
+  const announce = () => say('scaleStatus', `${scaleLabel()}: ${spellScale(sc.root, sc.type).join(' ')}.`, '');
+  $('scaleRoot').addEventListener('change', e => { sc.root = +e.target.value; sc.practice = -1; renderScale(); announce(); });
+  $('scaleType').addEventListener('change', e => { sc.type = e.target.value; sc.practice = -1; renderScale(); announce(); });
   $('scaleHear').addEventListener('click', () => {
     ensureAudio(); cancelSeq();
     scaleNotes().forEach((m,i) => { tone(m, i*0.32, 0.3); later(i*320, () => pS.flash([m], 300)); });
@@ -917,16 +945,16 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   });
   handlers.push(m => {
     if (sc.practice < 0) return;
-    const names = spellScale(sc.root, sc.type), iv = SCALES[sc.type].iv;
-    const want = (sc.root + (sc.practice === 7 ? 0 : iv[sc.practice])) % 12;
+    const names = spellScale(sc.root, sc.type), iv = SCALES[sc.type].iv, n = iv.length;
+    const want = (sc.root + (sc.practice === n ? 0 : iv[sc.practice])) % 12;
     if (m % 12 === want){
       sc.practice++;
-      if (sc.practice === 8){
+      if (sc.practice === n + 1){
         renderScale(); sc.practice = -1;
-        say('scaleStatus', `That's the ${SCALES[sc.type].names[sc.root]} ${SCALES[sc.type].w} scale. Try another starting note.`, 'good');
-      } else { renderScale(); say('scaleStatus', `${names[(sc.practice - 1) % 7]}, good. Next: ${names[sc.practice % 7]}.`, ''); }
+        say('scaleStatus', `That's the ${scaleLabel()} scale. Try another scale or starting note.`, 'good');
+      } else { renderScale(); say('scaleStatus', `${names[(sc.practice - 1) % n]}, good. Next: ${names[sc.practice % n]}.`, ''); }
     } else {
-      say('scaleStatus', `That was ${scaleSpellMap().get(m % 12)}. The next note in the scale is ${names[sc.practice % 7]}.`, 'warn');
+      say('scaleStatus', `That was ${scaleSpellMap().get(m % 12)}. The next note in the scale is ${names[sc.practice % n]}.`, 'warn');
     }
   });
   renderScale();
