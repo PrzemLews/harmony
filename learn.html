@@ -144,6 +144,13 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 .key.on,.key.hold{background:var(--marigold)!important}
 .key.play{background:var(--leaf)!important}
 .key.play .nm{color:var(--sheet)}
+.piano.named .nm{display:none}
+.key .kn{font-size:10px;font-weight:700;line-height:1.1;color:var(--ink-soft);white-space:nowrap}
+.key.b .kn{font-size:9px;color:var(--paper-2)}
+.key.mk .kn{color:var(--ink)}
+.key.b.mk .kn{color:var(--sheet)}
+.key.on .kn,.key.hold .kn{color:var(--ink)}
+.key.play .kn{color:var(--sheet)}
 
 .finale{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding:22px;border:2px solid var(--ink);border-radius:14px;background:var(--marigold);box-shadow:6px 6px 0 var(--ink);margin-top:8px}
 .finale h2{font-size:28px}
@@ -603,6 +610,10 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     host.addEventListener('pointerup', up); host.addEventListener('pointercancel', up);
     const p = {
       keys,
+      names(fn){
+        host.classList.add('named');
+        for (const [m,k] of keys){ let n = k.querySelector('.kn'); if (!n){ n = el('span', 'kn'); k.appendChild(n); } n.textContent = fn ? (fn(m) || '') : ''; }
+      },
       marks(map){ for (const [m,k] of keys){ const lab = map && map.get(m); k.classList.toggle('mk', lab != null); k.querySelector('.ml').textContent = lab != null ? lab : ''; } },
       flash(ms, dur){ ms.forEach(m => { const k = keys.get(fold(m)); if (k){ k.classList.add('play'); later(dur, () => k.classList.remove('play')); } }); }
     };
@@ -631,7 +642,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     const held = heldMidis(), id = identify(held);
     let names;
     if (id){ const sp = spell(id), pcs = QUAL[id.q].iv.map(i => (id.root + i) % 12); names = held.map(m => sp[pcs.indexOf(m % 12)] || ROOT_MAJ[m % 12]); }
-    else names = held.map(m => ROOT_MAJ[m % 12]);
+    else { const sm = active === 'scales' ? scaleSpellMap() : null; names = held.map(m => sm ? sm.get(m % 12) : ROOT_MAJ[m % 12]); }
     $('liveNotes').textContent = held.length ? names.join(' ') : 'nothing yet';
     $('liveChord').textContent = id ? sym(id) + ' · ' + QUAL[id.q].w : '';
     const lit = new Set(held.map(fold));
@@ -725,6 +736,15 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   fillRoots($('scaleRoot'), ROOT_MAJ);
   const sc = {root:0, type:'major', practice:-1};
   function scaleNotes(){ const base = 60 + sc.root; return [...SCALES[sc.type].iv.map(i => base + i), base + 12]; }
+  // name every key the way the chosen scale spells it; keys outside the scale follow its sharp or flat direction
+  const SHARPS = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'], FLATS = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+  function scaleSpellMap(){
+    const names = spellScale(sc.root, sc.type), iv = SCALES[sc.type].iv;
+    const flat = names.some(n => n.includes('♭')), map = new Map();
+    for (let pc = 0; pc < 12; pc++) map.set(pc, (flat ? FLATS : SHARPS)[pc]);
+    iv.forEach((v,i) => map.set((sc.root + v) % 12, names[i]));
+    return map;
+  }
   function renderScale(){
     const names = spellScale(sc.root, sc.type), iv = SCALES[sc.type].iv;
     const opt = $('scaleRoot').options; for (let i = 0; i < 12; i++) opt[i].textContent = SCALES[sc.type].names[i];
@@ -736,6 +756,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     });
     const marks = new Map(); scaleNotes().forEach((m,i) => marks.set(m, String(i === 7 ? 1 : i + 1)));
     pS.marks(marks);
+    const sm = scaleSpellMap(); pS.names(m => sm.get(m % 12));
   }
   $('scaleRoot').addEventListener('change', e => { sc.root = +e.target.value; sc.practice = -1; renderScale(); say('scaleStatus', `${SCALES[sc.type].names[sc.root]} ${SCALES[sc.type].w}: ${spellScale(sc.root, sc.type).join(' ')}.`, ''); });
   onSeg($('scaleType'), v => { sc.type = v; sc.practice = -1; renderScale(); say('scaleStatus', `${SCALES[sc.type].names[sc.root]} ${SCALES[sc.type].w}: ${spellScale(sc.root, sc.type).join(' ')}.`, ''); });
@@ -759,7 +780,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
         say('scaleStatus', `That's the ${SCALES[sc.type].names[sc.root]} ${SCALES[sc.type].w} scale. Try another starting note.`, 'good');
       } else { renderScale(); say('scaleStatus', `${names[(sc.practice - 1) % 7]}, good. Next: ${names[sc.practice % 7]}.`, ''); }
     } else {
-      say('scaleStatus', `That was ${ROOT_MAJ[m % 12]}. The next note in the scale is ${names[sc.practice % 7]}.`, 'warn');
+      say('scaleStatus', `That was ${scaleSpellMap().get(m % 12)}. The next note in the scale is ${names[sc.practice % 7]}.`, 'warn');
     }
   });
   renderScale();
