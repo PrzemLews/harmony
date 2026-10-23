@@ -378,7 +378,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   function fillRoots(sel, names){ names.forEach((n,i) => { const o = el('option', null, n); o.value = i; sel.appendChild(o); }); }
 
   // ---------- Audio ----------
-  let AC = null, master = null, soundOn = true;
+  let AC = null, master = null, drive = null, soundOn = true;
   const voices = new Map();
   let scheduled = [];
   function ensureAudio(){
@@ -387,16 +387,28 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
         AC = new (window.AudioContext || window.webkitAudioContext)();
         master = AC.createGain(); master.gain.value = 0.3;
         const comp = AC.createDynamicsCompressor(); master.connect(comp); comp.connect(AC.destination);
+        // gentle tanh saturation, the grit of an overdriven acid line
+        drive = AC.createWaveShaper();
+        const curve = new Float32Array(1024);
+        for (let i = 0; i < curve.length; i++){ const x = i / (curve.length - 1) * 2 - 1; curve[i] = Math.tanh(2.5 * x); }
+        drive.curve = curve; drive.oversample = '2x'; drive.connect(master);
       } catch(e){ AC = null; }
     }
     if (AC && AC.state === 'suspended') AC.resume().catch(() => {});
   }
   function makeVoice(m, t, vel){
     const f = 440 * Math.pow(2, (m - 69)/12);
-    const o1 = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain();
-    o1.type = 'triangle'; o1.frequency.value = f; o2.type = 'sine'; o2.frequency.value = f*2; g2.gain.value = 0.22;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.45*vel, t + 0.012); g.gain.exponentialRampToValueAtTime(0.15*vel + 0.001, t + 0.7);
-    o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(master); o1.start(t); o2.start(t);
+    // Acid bass voice: sawtooth through a resonant low-pass filter whose cutoff snaps down after each note
+    const o1 = AC.createOscillator(), o2 = AC.createOscillator(), filt = AC.createBiquadFilter(), g = AC.createGain(), g2 = AC.createGain();
+    o1.type = 'sawtooth'; o1.frequency.value = f;
+    o2.type = 'square'; o2.frequency.value = f; o2.detune.value = -6; g2.gain.value = 0.15;
+    filt.type = 'lowpass'; filt.Q.value = 14;
+    const peak = Math.min(9000, f*6 + 2200*vel), floor = Math.max(140, f*1.3);
+    filt.frequency.setValueAtTime(peak, t);
+    filt.frequency.exponentialRampToValueAtTime(floor, t + 0.28);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.32*vel, t + 0.005); g.gain.setTargetAtTime(0.22*vel, t + 0.01, 0.15);
+    o1.connect(filt); o2.connect(g2); g2.connect(filt); filt.connect(g); g.connect(drive || master);
+    o1.start(t); o2.start(t);
     return {o1, o2, g};
   }
   function release(v, t, tc){ v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(v.g.gain.value, t); v.g.gain.setTargetAtTime(0, t, tc); try { v.o1.stop(t + tc*7); v.o2.stop(t + tc*7); } catch(e){} }
