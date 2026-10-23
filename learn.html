@@ -543,7 +543,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   const ivTable = $('ivTable'); const ivEls = [];
   IVNAMES.forEach((n,i) => { const d = el('div', 'iv'); const b = el('b', null, i + (i === 1 ? ' half step' : ' half steps')); d.append(b, document.createTextNode(n)); ivTable.appendChild(d); ivEls.push(d); });
   let prevNote = null, notesIdle = 0;
-  const IDLE_MS = 3 * 1000;
+  const IDLE_MS = 1000;
   function resetNotesTool(){
     if (heldCount.size){ notesIdle = setTimeout(resetNotesTool, IDLE_MS); return; }
     prevNote = null;
