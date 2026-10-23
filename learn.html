@@ -306,7 +306,6 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <div class="controls">
         <label class="field"><span class="label">Root</span><select id="chordRoot"></select></label>
         <div class="field"><span class="label">Type</span><div class="seg" id="chordQ"><button type="button" data-v="maj" aria-pressed="true">Major</button><button type="button" data-v="min" aria-pressed="false">Minor</button></div></div>
-        <div class="field"><span class="label">Order</span><div class="seg" id="chordInv"><button type="button" data-v="0" aria-pressed="true">Root position</button><button type="button" data-v="2" aria-pressed="false">2nd inversion</button></div></div>
         <button class="btn ghost" type="button" id="chordHear">Hear it</button>
       </div>
       <div class="controls">
@@ -864,9 +863,8 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     pC.marks(marks);
     const cm = spellMap(sp, pcs); pC.names(m => cm.get(m % 12));
   }
-  $('chordRoot').addEventListener('change', e => { ch.root = +e.target.value; renderChord(); });
-  onSeg($('chordQ'), v => { ch.q = v; renderChord(); });
-  onSeg($('chordInv'), v => { ch.inv = +v; renderChord(); });
+  $('chordRoot').addEventListener('change', e => { ch.root = +e.target.value; ch.inv = 0; renderChord(); });
+  onSeg($('chordQ'), v => { ch.q = v; ch.inv = 0; renderChord(); });
   $('chordHear').addEventListener('click', () => {
     ensureAudio(); cancelSeq(); const v = voicing();
     v.forEach((m,i) => tone(m, i*0.18, 0.35));
@@ -961,7 +959,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     if (wkIdx >= WK.length) return;
     const t = WK[wkIdx];
     ch.root = t.root; ch.q = t.q; ch.inv = t.inv || 0;
-    $('chordRoot').value = String(t.root); setSeg($('chordQ'), t.q); setSeg($('chordInv'), ch.inv);
+    $('chordRoot').value = String(t.root); setSeg($('chordQ'), t.q);
     renderChord();
     $('pianoChords').scrollIntoView({block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
   });
