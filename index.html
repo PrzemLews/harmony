@@ -1,0 +1,699 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0">
+<title>Harmony Game</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&family=Kalam:wght@700&family=Noto+Music&display=swap">
+<style>
+/* Layout: one column — header strip, the staff stage (canvas + start card), live readout, playable piano, key help.
+   Single light look by choice: manuscript paper, ink, a marigold hero note. */
+:root{
+  --paper:#E6EBE3;
+  --paper-2:#D7DFD3;
+  --sheet:#FBFCF8;
+  --ink:#1E2A45;
+  --ink-soft:#56627C;
+  --marigold:#F2A900;
+  --coral:#D9483D;
+  --leaf:#23805F;
+  --f-display:"Bagel Fat One","Arial Rounded MT Bold",system-ui,sans-serif;
+  --f-body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-chord:"Kalam","Comic Sans MS","Chalkboard SE",cursive;
+  color-scheme:light;
+}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding-block:20px 36px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(28px,4.2vw,42px);line-height:1;margin:0;letter-spacing:.01em}
+.tag{font-size:13px;color:var(--ink-soft)}
+.stats{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+.stat{display:flex;flex-direction:column;min-width:52px}
+.label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft)}
+.val{font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;line-height:1.2}
+.lives{display:flex;gap:5px;padding-top:4px}
+.life{width:16px;height:12px;border-radius:50%;background:var(--ink);transform:rotate(-20deg);transition:background .2s,opacity .2s}
+.life.lost{background:transparent;box-shadow:inset 0 0 0 2px var(--ink);opacity:.35}
+.pill{font:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer;max-width:260px}
+.pill span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill:focus-visible,.btn:focus-visible,.seg input:focus-visible+span,.check input:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
+.dot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--ink-soft)}
+.pill[data-state="on"] .dot{background:var(--leaf)}
+.pill[data-state="off"] .dot{background:var(--coral)}
+
+.stage{position:relative;border:2px solid var(--ink);border-radius:16px;overflow:hidden;background:var(--sheet)}
+canvas{display:block;width:100%;max-width:100%;aspect-ratio:2/1;touch-action:none}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(230,235,227,.72);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.card{background:var(--sheet);border:2px solid var(--ink);border-radius:14px;box-shadow:6px 6px 0 var(--ink);padding:20px 22px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:12px}
+.card h2{font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.1;margin:0;text-wrap:balance}
+.card p{margin:0;color:var(--ink-soft)}
+.seg{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.seg-row{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:inline-block;padding:6px 12px;border:1.5px solid var(--ink);border-radius:8px;font-size:14px;font-weight:600;background:var(--sheet)}
+.seg input:checked+span{background:var(--ink);color:var(--sheet)}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--ink)}
+.btn{font-family:var(--f-display);font-size:20px;font-weight:400;letter-spacing:.02em;padding:10px 18px;border-radius:10px;border:2px solid var(--ink);background:var(--marigold);color:var(--ink);box-shadow:3px 3px 0 var(--ink);cursor:pointer;align-self:flex-start;transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+
+.readout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,2fr);gap:12px 24px;align-items:end}
+.readout>div{min-width:0}
+.notes{font-weight:700;font-size:20px;min-height:30px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chordname{font-family:var(--f-chord);font-weight:700;font-size:28px;line-height:1.1;min-height:30px}
+.msg{margin:0;font-size:15px;min-height:24px;padding:8px 12px;border-radius:10px;background:var(--paper-2)}
+.msg[data-tone="good"]{background:var(--leaf);color:var(--sheet)}
+.msg[data-tone="warn"]{background:var(--coral);color:var(--sheet)}
+
+.piano-wrap{overflow-x:auto;padding-bottom:4px}
+.piano{position:relative;height:132px;min-width:520px;user-select:none;-webkit-user-select:none;touch-action:none}
+.key{position:absolute;top:0;border:1.5px solid var(--ink);display:flex;align-items:flex-end;justify-content:center;font-size:11px;font-weight:700;cursor:pointer}
+.key.w{height:100%;background:var(--sheet);border-radius:0 0 8px 8px;color:var(--ink-soft);padding-bottom:6px;z-index:1}
+.key.b{height:60%;background:var(--ink);border-radius:0 0 6px 6px;color:var(--paper-2);padding-bottom:4px;z-index:2}
+.key .cname{position:absolute;bottom:22px;font-size:10px;opacity:.6}
+.key.on.w{background:var(--marigold);color:var(--ink)}
+.key.on.b{background:var(--marigold);color:var(--ink)}
+.key.hit.w,.key.hit.b{background:var(--leaf);color:var(--sheet)}
+
+.help{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:13px;color:var(--ink-soft)}
+.help p{margin:0;max-width:65ch}
+kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;border:1.5px solid var(--ink-soft);border-bottom-width:3px;border-radius:5px;color:var(--ink);background:var(--sheet)}
+
+@media (max-width:820px){
+  .overlay{position:static;background:var(--paper-2);border-top:2px solid var(--ink)}
+  .card{box-shadow:none}
+  canvas{aspect-ratio:3/2}
+  .readout{grid-template-columns:1fr 1fr}
+  .readout .msg{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){.btn{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>Harmony Game</h1>
+      <span class="tag">Chord runner · prototype 1</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="label">Score</span><span class="val" id="score">0</span></div>
+      <div class="stat"><span class="label">Gates</span><span class="val" id="gates">0</span></div>
+      <div class="stat"><span class="label">Best</span><span class="val" id="best">0</span></div>
+      <div class="stat"><span class="label">Lives</span><div class="lives" id="lives"><i class="life"></i><i class="life"></i><i class="life"></i></div></div>
+      <button class="pill" id="midiPill" type="button" data-state="idle" title="Connect a MIDI keyboard"><span class="dot"></span><span id="midiText">MIDI: press to connect</span></button>
+      <button class="pill" id="soundBtn" type="button" aria-pressed="true"><span id="soundText">Sound on</span></button>
+    </div>
+  </header>
+
+  <div class="stage">
+    <canvas id="cv" role="img" aria-label="Game stage: Quaver, a little eighth note, runs along a treble staff toward chord gates and notes."></canvas>
+    <div class="overlay" id="overlay">
+      <div class="card">
+        <span class="label" id="ovEyebrow">How to play</span>
+        <h2 id="ovTitle">Play the chord, open the gate</h2>
+        <p id="ovText">Quaver runs along the staff. Play the chord written on each gate before Quaver reaches it. Play single notes to catch the notes on the staff.</p>
+        <fieldset class="seg">
+          <legend class="label">Level</legend>
+          <div class="seg-row">
+            <label><input type="radio" name="level" id="lvC" value="c" checked><span>Key of C</span></label>
+            <label><input type="radio" name="level" id="lvMaj" value="major"><span>All major</span></label>
+            <label><input type="radio" name="level" id="lvMix" value="mixed"><span>Major + minor</span></label>
+          </div>
+        </fieldset>
+        <label class="check"><input type="checkbox" id="hints" checked> Show chord tones and note names</label>
+        <button class="btn" id="startBtn" type="button">Play</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="readout" aria-live="polite">
+    <div><span class="label">You're playing</span><div class="notes" id="heldNotes">—</div></div>
+    <div><span class="label">Chord</span><div class="chordname" id="heldChord">—</div></div>
+    <p class="msg" id="msg">Try the keyboard first: hold C, E and G together.</p>
+  </section>
+
+  <div class="piano-wrap"><div class="piano" id="piano" aria-label="Playable piano, C4 to C6"></div></div>
+
+  <div class="help">
+    <p><strong>MIDI keyboard:</strong> plug it in, then press the MIDI button or Play. Any octave and any inversion counts.</p>
+    <p><strong>Computer keys:</strong> <kbd>A</kbd> to <kbd>;</kbd> are white keys, <kbd>W</kbd> <kbd>E</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>O</kbd> <kbd>P</kbd> are black keys. <kbd>Z</kbd> / <kbd>X</kbd> shift the octave.</p>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ---------- Music theory ----------
+  const LET = 'CDEFGAB', LETPC = [0,2,4,5,7,9,11];
+  const ROOT_MAJ = ['C','D♭','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+  const ROOT_MIN = ['C','C♯','D','E♭','E','F','F♯','G','G♯','A','B♭','B'];
+  const QUAL = {
+    maj:{s:'',w:'major',iv:[0,4,7],deg:[0,2,4]},
+    min:{s:'m',w:'minor',iv:[0,3,7],deg:[0,2,4]},
+    dim:{s:'dim',w:'diminished',iv:[0,3,6],deg:[0,2,4]},
+    aug:{s:'aug',w:'augmented',iv:[0,4,8],deg:[0,2,4]},
+    sus2:{s:'sus2',w:'suspended 2nd',iv:[0,2,7],deg:[0,1,4]},
+    sus4:{s:'sus4',w:'suspended 4th',iv:[0,5,7],deg:[0,3,4]},
+    dom7:{s:'7',w:'dominant 7th',iv:[0,4,7,10],deg:[0,2,4,6]},
+    maj7:{s:'maj7',w:'major 7th',iv:[0,4,7,11],deg:[0,2,4,6]},
+    min7:{s:'m7',w:'minor 7th',iv:[0,3,7,10],deg:[0,2,4,6]}
+  };
+  const ACC = {'-2':'𝄫','-1':'♭','0':'','1':'♯','2':'𝄪'};
+  const rootName = c => (c.q === 'min' || c.q === 'min7' ? ROOT_MIN : ROOT_MAJ)[c.root];
+  const sym = c => rootName(c) + QUAL[c.q].s;
+  const longName = c => rootName(c) + ' ' + QUAL[c.q].w;
+  function spell(c){
+    const rn = rootName(c), li = LET.indexOf(rn[0]), Q = QUAL[c.q];
+    return Q.iv.map((iv,k) => {
+      const L = (li + Q.deg[k]) % 7, pc = (c.root + iv) % 12;
+      let d = ((pc - LETPC[L]) % 12 + 12) % 12; if (d > 6) d -= 12;
+      return LET[L] + ACC[d];
+    });
+  }
+  const chordPcs = c => new Set(QUAL[c.q].iv.map(i => (c.root + i) % 12));
+  function identify(midis){
+    if (midis.length < 3) return null;
+    const pcs = new Set(midis.map(m => m % 12));
+    if (pcs.size < 3) return null;
+    const bass = Math.min(...midis) % 12;
+    let best = null;
+    for (const q in QUAL) for (let r = 0; r < 12; r++){
+      const s = chordPcs({root:r,q});
+      if (s.size === pcs.size && [...s].every(p => pcs.has(p))){
+        if (r === bass) return {root:r,q};
+        if (!best) best = {root:r,q};
+      }
+    }
+    return best;
+  }
+  const setEq = (a,b) => a.size === b.size && [...a].every(x => b.has(x));
+
+  const LEVELS = {
+    c:{name:'Key of C', chords:[[0,'maj'],[2,'min'],[4,'min'],[5,'maj'],[7,'maj'],[9,'min']].map(([root,q])=>({root,q}))},
+    major:{name:'All major', chords:[...Array(12)].map((_,r)=>({root:r,q:'maj'}))},
+    mixed:{name:'Major + minor', chords:[...Array(12)].flatMap((_,r)=>[{root:r,q:'maj'},{root:r,q:'min'}])}
+  };
+  // Notes on the treble staff, step 0 = bottom line (E4)
+  const STAFF_NOTES = [[64,0,'E'],[65,1,'F'],[67,2,'G'],[69,3,'A'],[71,4,'B'],[72,5,'C'],[74,6,'D'],[76,7,'E'],[77,8,'F']].map(([m,step,n])=>({m,step,n}));
+
+  // ---------- Elements ----------
+  const $ = id => document.getElementById(id);
+  const cv = $('cv'), cx = cv.getContext('2d');
+  const C = {};
+  function readColors(){
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ['paper','paper-2','sheet','ink','ink-soft','marigold','coral','leaf']) C[k.replace('-','_')] = cs.getPropertyValue('--'+k).trim();
+  }
+  readColors();
+
+  const store = {
+    get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+    set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+  };
+  let best = parseInt(store.get('hg-best') || '0', 10) || 0;
+  $('best').textContent = best;
+
+  // ---------- Game state ----------
+  const CHAR_X = 0.2;
+  const G = {
+    running:false, level:'c', hints:true,
+    score:0, lives:3, cleared:0, streak:0, speed:1, time:0, scroll:0,
+    gates:[], coins:[], parts:[], coinPending:false, lastChord:null,
+    char:{jump:0, vy:0, bonk:0}
+  };
+  function resetDemo(){
+    G.gates = [{x:0.66, root:5, q:'maj', state:'wait', t:0}];
+    G.coins = [{x:0.43, ...STAFF_NOTES[3], state:'wait', t:0}];
+    G.parts = [];
+  }
+  resetDemo();
+
+  // ---------- Canvas sizing ----------
+  let W = 0, H = 0;
+  function resize(){
+    const r = cv.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = r.width; H = r.height;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    cx.setTransform(dpr,0,0,dpr,0,0);
+    if (!G.running) draw();
+  }
+  new ResizeObserver(resize).observe(cv);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!G.running) draw(); });
+
+  function geo(){
+    const gap = H * 0.075;
+    const staffTop = H * 0.27;
+    return {
+      gap, staffTop, staffBot: staffTop + 4*gap,
+      ground: H * 0.88,
+      cardY: H * 0.05, cardH: H * 0.155,
+      r: Math.max(10, gap * 0.78)
+    };
+  }
+
+  // ---------- Drawing ----------
+  function rrect(x,y,w,h,r){ cx.beginPath(); cx.moveTo(x+r,y); cx.arcTo(x+w,y,x+w,y+h,r); cx.arcTo(x+w,y+h,x,y+h,r); cx.arcTo(x,y+h,x,y,r); cx.arcTo(x,y,x+w,y,r); cx.closePath(); }
+
+  function drawStaff(g){
+    cx.strokeStyle = C.ink; cx.lineWidth = 1.3; cx.globalAlpha = .6;
+    for (let i = 0; i < 5; i++){ const y = Math.round(g.staffTop + i*g.gap) + .5; cx.beginPath(); cx.moveTo(0,y); cx.lineTo(W,y); cx.stroke(); }
+    // passing bar lines give a sense of speed
+    cx.globalAlpha = .14; cx.lineWidth = 1.5;
+    const step = 0.34, off = G.scroll % step;
+    for (let x = -off; x < 1.05; x += step){ if (x*W < W*0.1) continue; cx.beginPath(); cx.moveTo(x*W, g.staffTop); cx.lineTo(x*W, g.staffBot); cx.stroke(); }
+    cx.globalAlpha = 1;
+    // road
+    cx.lineWidth = 2.5; cx.beginPath(); cx.moveTo(0,g.ground); cx.lineTo(W,g.ground); cx.stroke();
+    cx.lineWidth = 2; cx.globalAlpha = .3;
+    const dOff = (G.scroll % 0.05);
+    for (let x = -dOff; x < 1.02; x += 0.05){ cx.beginPath(); cx.moveTo(x*W, g.ground + 7); cx.lineTo(x*W + W*0.018, g.ground + 7); cx.stroke(); }
+    cx.globalAlpha = 1;
+    // treble clef fitted to the staff
+    const want = g.gap * 7.2;
+    cx.font = `100px "Noto Music", "Segoe UI Symbol", serif`;
+    const m = cx.measureText('𝄞');
+    const hgt = (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) || 100;
+    const size = 100 * want / hgt;
+    cx.font = `${size}px "Noto Music", "Segoe UI Symbol", serif`;
+    const m2 = cx.measureText('𝄞');
+    cx.fillStyle = C.ink; cx.textAlign = 'left'; cx.textBaseline = 'alphabetic';
+    cx.fillText('𝄞', W*0.02, g.staffTop - g.gap*1.5 + (m2.actualBoundingBoxAscent || size*0.75));
+  }
+
+  function drawGate(gt, g, isTarget){
+    const x = gt.x * W;
+    let lift = 0, alpha = 1, barCol = C.ink, tilt = 0;
+    if (gt.state === 'open'){ lift = Math.min(1, gt.t*2.4) * (g.ground - g.cardY); alpha = Math.max(0, 1 - gt.t*1.5); barCol = C.leaf; }
+    if (gt.state === 'broken'){ barCol = C.coral; tilt = Math.min(.55, gt.t*2.2); alpha = Math.max(0, 1 - gt.t*1.1); }
+    if (alpha <= 0) return;
+    cx.save(); cx.globalAlpha = alpha;
+    const topY = g.cardY + g.cardH;
+    cx.save(); cx.translate(x, g.ground); cx.rotate(tilt);
+    cx.fillStyle = barCol;
+    const len = g.ground - topY;
+    cx.fillRect(-g.gap*0.42, -len - lift, 2, len);
+    cx.fillRect(-g.gap*0.12, -len - lift, Math.max(5, g.gap*0.3), len);
+    cx.restore();
+    // chord card
+    const symText = sym(gt);
+    const fs = g.cardH * (G.hints ? 0.5 : 0.6);
+    cx.font = `700 ${fs}px "Kalam", "Comic Sans MS", cursive`;
+    let w = cx.measureText(symText).width + g.cardH*0.5;
+    let tones = '';
+    if (G.hints){ tones = spell(gt).join(' · '); cx.font = `600 ${g.cardH*0.19}px "DM Sans", system-ui, sans-serif`; w = Math.max(w, cx.measureText(tones).width + g.cardH*0.4); }
+    w = Math.max(w, g.cardH*1.2);
+    const cy0 = g.cardY - (gt.state === 'open' ? Math.min(1, gt.t*2.4)*g.cardH*0.4 : 0);
+    rrect(x - w/2, cy0, w, g.cardH, 9);
+    cx.fillStyle = gt.state === 'open' ? C.leaf : gt.state === 'broken' ? C.coral : isTarget ? C.marigold : C.sheet;
+    cx.fill(); cx.lineWidth = 2; cx.strokeStyle = C.ink; cx.stroke();
+    const textCol = (gt.state === 'open' || gt.state === 'broken') ? C.sheet : C.ink;
+    cx.fillStyle = textCol; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.font = `700 ${fs}px "Kalam", "Comic Sans MS", cursive`;
+    cx.fillText(symText, x, cy0 + g.cardH*(G.hints ? 0.4 : 0.54));
+    if (G.hints){ cx.font = `600 ${g.cardH*0.19}px "DM Sans", system-ui, sans-serif`; cx.fillText(tones, x, cy0 + g.cardH*0.8); }
+    cx.restore();
+  }
+
+  function drawCoin(c, g, isTarget){
+    const x = c.x * W;
+    let y = g.staffBot - c.step * g.gap/2;
+    let alpha = 1, col = C.ink;
+    if (c.state === 'got'){ y -= c.t * H * 0.5; alpha = Math.max(0, 1 - c.t*1.8); col = C.leaf; }
+    if (c.state === 'missed'){ alpha = Math.max(0, .45 - c.t*.6); }
+    if (alpha <= 0) return;
+    cx.save(); cx.globalAlpha = alpha;
+    if (isTarget){ cx.fillStyle = C.marigold; cx.globalAlpha = alpha*.45; cx.beginPath(); cx.arc(x, y, g.gap*1.05, 0, Math.PI*2); cx.fill(); cx.globalAlpha = alpha; }
+    cx.fillStyle = col; cx.strokeStyle = col; cx.lineWidth = Math.max(1.5, g.gap*0.09);
+    cx.save(); cx.translate(x,y); cx.rotate(-0.35); cx.beginPath(); cx.ellipse(0,0,g.gap*0.6,g.gap*0.42,0,0,Math.PI*2); cx.fill(); cx.restore();
+    cx.beginPath();
+    if (c.step < 4){ cx.moveTo(x + g.gap*0.55, y - g.gap*0.1); cx.lineTo(x + g.gap*0.55, y - g.gap*3.2); }
+    else { cx.moveTo(x - g.gap*0.55, y + g.gap*0.1); cx.lineTo(x - g.gap*0.55, y + g.gap*3.2); }
+    cx.stroke();
+    if (G.hints && c.state === 'wait'){
+      cx.fillStyle = C.ink_soft; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+      cx.font = `700 ${g.gap*1.05}px "Kalam", "Comic Sans MS", cursive`;
+      cx.fillText(c.n, x, g.staffBot + g.gap*1.6);
+    }
+    cx.restore();
+  }
+
+  function drawQuaver(g){
+    const ch = G.char, r = g.r, x = CHAR_X * W, legs = r * 0.75;
+    const by = g.ground - legs - r*0.8 - ch.jump * H;
+    cx.save(); cx.translate(x, by);
+    if (ch.bonk > 0) cx.rotate(Math.sin(ch.bonk*28) * 0.3 * ch.bonk);
+    const onGround = ch.jump <= 0.001;
+    const ph = G.time * 15;
+    cx.strokeStyle = C.ink; cx.lineCap = 'round'; cx.lineWidth = Math.max(2, r*0.17);
+    for (const k of [-1,1]){
+      const sw = G.running && onGround ? Math.sin(ph + (k > 0 ? Math.PI : 0)) * r*0.4 : k * r*0.18;
+      cx.beginPath(); cx.moveTo(k*r*0.35, r*0.55); cx.lineTo(k*r*0.35 + sw, r*0.8 + legs); cx.stroke();
+    }
+    // stem and flag
+    cx.lineWidth = Math.max(2.5, r*0.19);
+    const sx = r*1.02;
+    cx.beginPath(); cx.moveTo(sx, -r*0.3); cx.lineTo(sx, -r*2.9); cx.stroke();
+    const wave = G.running ? Math.sin(G.time*10) * r*0.12 : 0;
+    cx.beginPath(); cx.moveTo(sx, -r*2.9); cx.bezierCurveTo(sx + r*0.2, -r*2.15, sx + r*1.15, -r*2.0, sx + r*0.75, -r*1.0 + wave); cx.stroke();
+    // body (a tilted notehead)
+    cx.save(); cx.rotate(-0.35);
+    cx.beginPath(); cx.ellipse(0, 0, r*1.15, r*0.82, 0, 0, Math.PI*2);
+    cx.fillStyle = ch.bonk > 0 ? C.coral : C.marigold; cx.fill();
+    cx.lineWidth = Math.max(2, r*0.14); cx.stroke();
+    cx.restore();
+    // eyes
+    for (const ex of [-r*0.05, r*0.45]){
+      cx.fillStyle = C.sheet; cx.beginPath(); cx.arc(ex, -r*0.12, r*0.25, 0, Math.PI*2); cx.fill();
+      cx.lineWidth = Math.max(1, r*0.07); cx.stroke();
+      cx.fillStyle = C.ink; cx.beginPath();
+      if (ch.bonk > 0){ cx.lineWidth = Math.max(1.5, r*0.08); cx.moveTo(ex - r*0.1, -r*0.2); cx.lineTo(ex + r*0.1, -r*0.04); cx.moveTo(ex + r*0.1, -r*0.2); cx.lineTo(ex - r*0.1, -r*0.04); cx.stroke(); }
+      else { cx.arc(ex + r*0.08, -r*0.1, r*0.11, 0, Math.PI*2); cx.fill(); }
+    }
+    cx.restore();
+  }
+
+  function drawParts(){
+    cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    for (const p of G.parts){
+      cx.globalAlpha = Math.max(0, p.life);
+      cx.fillStyle = p.col;
+      cx.font = `${p.size}px "Noto Music", "Segoe UI Symbol", serif`;
+      cx.fillText(p.ch, p.x*W, p.y*H);
+    }
+    cx.globalAlpha = 1;
+  }
+
+  function draw(){
+    if (!W || !H) return;
+    const g = geo();
+    cx.clearRect(0,0,W,H);
+    cx.fillStyle = C.sheet; cx.fillRect(0,0,W,H);
+    drawStaff(g);
+    const ct = coinTarget(), gt = gateTarget();
+    for (const c of G.coins) drawCoin(c, g, c === ct);
+    for (const t of G.gates) drawGate(t, g, t === gt);
+    drawQuaver(g);
+    drawParts();
+  }
+
+  // ---------- Game logic ----------
+  const gateTarget = () => G.gates.find(t => t.state === 'wait' && t.x < 0.99);
+  const coinTarget = () => G.coins.find(c => c.state === 'wait' && c.x < 0.99 && c.x > CHAR_X - 0.02);
+
+  function makeGate(x){
+    const list = LEVELS[G.level].chords;
+    let c;
+    do { c = list[Math.floor(Math.random()*list.length)]; } while (list.length > 1 && G.lastChord && c.root === G.lastChord.root && c.q === G.lastChord.q);
+    G.lastChord = c;
+    return {x, root:c.root, q:c.q, state:'wait', t:0};
+  }
+  function makeCoin(x){ return {x, ...STAFF_NOTES[Math.floor(Math.random()*STAFF_NOTES.length)], state:'wait', t:0}; }
+
+  function burst(x, y, col, n){
+    const glyphs = ['♪','♫','♩'];
+    for (let i = 0; i < n; i++) G.parts.push({x: x + (Math.random()-.5)*.04, y, vx:(Math.random()-.5)*.12, vy:-(.25 + Math.random()*.35), life:1, ch:glyphs[i%3], col, size: 14 + Math.random()*12});
+  }
+
+  function update(dt){
+    G.time += dt;
+    const v = 0.12 * G.speed;
+    G.scroll += v * dt;
+    for (const t of G.gates){ t.x -= v*dt; if (t.state !== 'wait') t.t += dt; }
+    for (const c of G.coins){ c.x -= v*dt; if (c.state !== 'wait') c.t += dt; }
+
+    const spacing = 0.5;
+    let lg = G.gates[G.gates.length - 1];
+    if (!lg || lg.x < 1.06 - spacing){ G.gates.push(makeGate(1.06)); G.coinPending = Math.random() < 0.75; lg = G.gates[G.gates.length-1]; }
+    if (G.coinPending && lg.x < 1.06 - spacing*0.5){ G.coins.push(makeCoin(1.06)); G.coinPending = false; }
+
+    for (const t of G.gates){
+      if (t.state === 'wait' && t.x <= CHAR_X + 0.025){
+        t.state = 'broken'; t.t = 0;
+        G.lives--; G.streak = 0; G.char.bonk = 1;
+        say(`Bonk! That gate wanted ${sym(t)}: ${spell(t).join(' · ')}.`, 'warn');
+        renderStats();
+        if (G.lives <= 0){ gameOver(); return; }
+      }
+    }
+    for (const c of G.coins){ if (c.state === 'wait' && c.x < CHAR_X - 0.03){ c.state = 'missed'; c.t = 0; } }
+    G.gates = G.gates.filter(t => t.x > -0.15 && !(t.state !== 'wait' && t.t > 1.2));
+    G.coins = G.coins.filter(c => c.x > -0.1 && !(c.state !== 'wait' && c.t > 1));
+
+    const ch = G.char;
+    if (ch.jump > 0 || ch.vy > 0){ ch.vy -= 5.2*dt; ch.jump += ch.vy*dt; if (ch.jump <= 0){ ch.jump = 0; ch.vy = 0; } }
+    if (ch.bonk > 0) ch.bonk = Math.max(0, ch.bonk - dt*1.6);
+
+    for (const p of G.parts){ p.x += p.vx*dt; p.y += p.vy*dt; p.life -= dt*1.1; }
+    G.parts = G.parts.filter(p => p.life > 0);
+  }
+
+  function openGate(t){
+    t.state = 'open'; t.t = 0;
+    G.cleared++; G.streak++;
+    const pts = 10 + Math.min(10, (G.streak-1)*2);
+    G.score += pts;
+    G.speed = Math.min(2.2, 1 + G.cleared*0.035);
+    if (G.char.jump < 0.02) G.char.vy = 1.0;
+    const g = geo();
+    burst(t.x, (g.cardY + g.cardH*0.5)/H, C.leaf, 6);
+    say(`${longName(t)}: ${spell(t).join(' · ')}. +${pts}${G.streak > 1 ? `  (streak ×${G.streak})` : ''}`, 'good');
+    renderStats();
+  }
+  function collectCoin(c){
+    c.state = 'got'; c.t = 0;
+    G.score += 3;
+    if (G.char.jump < 0.05) G.char.vy = 1.55;
+    const g = geo();
+    burst(c.x, (g.staffBot - c.step*g.gap/2)/H, C.marigold, 3);
+    renderStats();
+  }
+
+  function onGameNote(m){
+    const held = heldMidis();
+    const pcs = new Set(held.map(n => n % 12));
+    const gt = gateTarget();
+    if (gt && pcs.size >= 3){
+      if (setEq(pcs, chordPcs(gt))) { openGate(gt); return; }
+      const id = identify(held);
+      say(`${id ? `That's ${sym(id)}` : 'Not a chord yet'}. This gate wants ${sym(gt)}${G.hints ? ` (${spell(gt).join(' · ')})` : ''}.`, 'warn');
+      return;
+    }
+    const ct = coinTarget();
+    if (ct && ct.m % 12 === m % 12){ collectCoin(ct); return; }
+    if (G.char.jump < 0.01) G.char.vy = 0.45;
+  }
+
+  function renderStats(){
+    $('score').textContent = G.score;
+    $('gates').textContent = G.cleared;
+    [...$('lives').children].forEach((el,i) => el.classList.toggle('lost', i >= G.lives));
+  }
+  function say(text, tone){ const el = $('msg'); el.textContent = text; el.dataset.tone = tone || ''; }
+
+  let last = 0;
+  function frame(t){
+    if (!G.running) return;
+    const dt = Math.min(0.05, (t - last) / 1000 || 0); last = t;
+    update(dt);
+    if (G.running) draw();
+    requestAnimationFrame(frame);
+  }
+
+  function start(){
+    ensureAudio();
+    if (midiState !== 'on') initMidi();
+    G.level = document.querySelector('input[name="level"]:checked').value;
+    G.hints = $('hints').checked;
+    Object.assign(G, {score:0, lives:3, cleared:0, streak:0, speed:1, time:0, scroll:0, gates:[], coins:[], parts:[], coinPending:false, lastChord:null});
+    G.char = {jump:0, vy:0, bonk:0};
+    G.gates.push(makeGate(0.92));
+    renderStats();
+    $('overlay').hidden = true;
+    say(`${LEVELS[G.level].name}. Play the chord on the yellow card.`, '');
+    G.running = true; last = performance.now();
+    requestAnimationFrame(frame);
+  }
+  function gameOver(){
+    G.running = false;
+    if (G.score > best){ best = G.score; store.set('hg-best', String(best)); $('best').textContent = best; }
+    $('ovEyebrow').textContent = 'Run over';
+    $('ovTitle').textContent = `${G.score} points`;
+    $('ovText').textContent = `You opened ${G.cleared} gate${G.cleared === 1 ? '' : 's'} in ${LEVELS[G.level].name}. Best so far: ${best}.`;
+    $('startBtn').textContent = 'Play again';
+    $('overlay').hidden = false;
+    draw();
+  }
+  $('startBtn').addEventListener('click', start);
+  $('hints').addEventListener('change', e => { G.hints = e.target.checked; if (!G.running) draw(); });
+  document.querySelectorAll('input[name="level"]').forEach(r => r.addEventListener('change', () => { if (r.checked) G.level = r.value; }));
+
+  // ---------- Notes in / out ----------
+  const heldCount = new Map();
+  const heldMidis = () => [...heldCount.keys()].sort((a,b) => a-b);
+
+  function noteOn(m, vel){
+    ensureAudio();
+    heldCount.set(m, (heldCount.get(m) || 0) + 1);
+    playVoice(m, vel);
+    renderHeld();
+    if (G.running) onGameNote(m);
+  }
+  function noteOff(m){
+    const n = (heldCount.get(m) || 0) - 1;
+    if (n <= 0){ heldCount.delete(m); stopVoice(m); } else heldCount.set(m, n);
+    renderHeld();
+  }
+  function renderHeld(){
+    const held = heldMidis();
+    const id = identify(held);
+    let names;
+    if (id){
+      const sp = spell(id), pcs = QUAL[id.q].iv.map(i => (id.root + i) % 12);
+      names = held.map(m => sp[pcs.indexOf(m % 12)] || ROOT_MAJ[m % 12]);
+    } else names = held.map(m => ROOT_MAJ[m % 12]);
+    $('heldNotes').textContent = held.length ? names.join(' ') : '—';
+    $('heldChord').textContent = id ? `${sym(id)}  ·  ${QUAL[id.q].w}` : (held.length >= 3 ? '?' : '—');
+    // piano highlight (fold into visible range)
+    const lit = new Set(held.map(m => { let d = m; while (d < LO) d += 12; while (d > HI) d -= 12; return d; }));
+    for (const [m, el] of keyEls){ el.classList.toggle('on', lit.has(m)); }
+    if (!G.running && id) say(`Nice, that's ${longName(id)}: ${spell(id).join(' · ')}.`, 'good');
+  }
+
+  // ---------- Audio ----------
+  let AC = null, master = null, soundOn = true;
+  const voices = new Map();
+  function ensureAudio(){
+    if (!AC){
+      try {
+        AC = new (window.AudioContext || window.webkitAudioContext)();
+        master = AC.createGain(); master.gain.value = 0.3;
+        const comp = AC.createDynamicsCompressor();
+        master.connect(comp); comp.connect(AC.destination);
+      } catch(e){ AC = null; }
+    }
+    if (AC && AC.state === 'suspended') AC.resume().catch(() => {});
+  }
+  function playVoice(m, vel){
+    if (!AC || !soundOn) return;
+    stopVoice(m);
+    const f = 440 * Math.pow(2, (m - 69)/12), t = AC.currentTime;
+    const o1 = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain();
+    o1.type = 'triangle'; o1.frequency.value = f;
+    o2.type = 'sine'; o2.frequency.value = f*2; g2.gain.value = 0.22;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.5*vel, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.16*vel + 0.001, t + 0.7);
+    o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(master);
+    o1.start(t); o2.start(t);
+    voices.set(m, {o1, o2, g});
+  }
+  function stopVoice(m){
+    const v = voices.get(m); if (!v || !AC) return;
+    const t = AC.currentTime;
+    v.g.gain.cancelScheduledValues(t);
+    v.g.gain.setValueAtTime(v.g.gain.value, t);
+    v.g.gain.setTargetAtTime(0, t, 0.07);
+    v.o1.stop(t + 0.5); v.o2.stop(t + 0.5);
+    voices.delete(m);
+  }
+  $('soundBtn').addEventListener('click', e => {
+    soundOn = !soundOn;
+    e.currentTarget.setAttribute('aria-pressed', String(soundOn));
+    $('soundText').textContent = soundOn ? 'Sound on' : 'Sound off';
+    if (!soundOn) [...voices.keys()].forEach(stopVoice); else ensureAudio();
+  });
+
+  // ---------- MIDI ----------
+  let midiState = 'idle';
+  function setMidi(state, text){ midiState = state; $('midiPill').dataset.state = state; $('midiText').textContent = text; $('midiPill').title = text; }
+  function onMidi(e){
+    const [st, d1, d2] = e.data, cmd = st & 0xF0;
+    if (cmd === 0x90 && d2 > 0) noteOn(d1, Math.max(0.25, d2/127));
+    else if (cmd === 0x80 || (cmd === 0x90 && d2 === 0)) noteOff(d1);
+  }
+  function attach(acc){
+    const names = [];
+    acc.inputs.forEach(inp => { inp.onmidimessage = onMidi; names.push(inp.name); });
+    if (names.length) setMidi('on', `MIDI: ${names[0]}`);
+    else setMidi('idle', 'MIDI: no keyboard found');
+  }
+  async function initMidi(){
+    if (!navigator.requestMIDIAccess){ setMidi('off', 'MIDI not supported in this browser'); return; }
+    try {
+      const acc = await navigator.requestMIDIAccess();
+      attach(acc);
+      acc.onstatechange = () => attach(acc);
+    } catch(e){ setMidi('off', 'MIDI blocked here. Use computer keys'); }
+  }
+  $('midiPill').addEventListener('click', initMidi);
+
+  // ---------- Computer keyboard ----------
+  const KMAP = 'awsedftgyhujkolp;';
+  let octShift = 0;
+  const kDown = {};
+  function releaseKeys(){ for (const k in kDown){ noteOff(kDown[k]); delete kDown[k]; } }
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' || k === 'x'){
+      if (!e.repeat){ releaseKeys(); octShift = Math.max(-3, Math.min(2, octShift + (k === 'x' ? 1 : -1))); labelKeys(); say(`Computer keys now start at C${4 + octShift}.`, ''); }
+      return;
+    }
+    const i = KMAP.indexOf(k);
+    if (i < 0) return;
+    e.preventDefault();
+    if (e.repeat || kDown[k] != null) return;
+    const m = 60 + octShift*12 + i;
+    kDown[k] = m; noteOn(m, 0.8);
+  });
+  addEventListener('keyup', e => { const k = e.key.toLowerCase(); if (kDown[k] != null){ noteOff(kDown[k]); delete kDown[k]; } });
+  addEventListener('blur', releaseKeys);
+
+  // ---------- On-screen piano ----------
+  const LO = 60, HI = 84;
+  const keyEls = new Map();
+  const isWhite = m => LETPC.includes(m % 12);
+  (function buildPiano(){
+    const piano = $('piano');
+    const whites = []; for (let m = LO; m <= HI; m++) if (isWhite(m)) whites.push(m);
+    const ww = 100 / whites.length;
+    for (let m = LO; m <= HI; m++){
+      const el = document.createElement('div');
+      el.className = 'key ' + (isWhite(m) ? 'w' : 'b');
+      if (isWhite(m)){
+        const i = whites.indexOf(m);
+        el.style.left = (i*ww) + '%'; el.style.width = `calc(${ww}% + 1.5px)`;
+        if (m % 12 === 0){ const c = document.createElement('span'); c.className = 'cname'; c.textContent = 'C' + (Math.floor(m/12) - 1); el.appendChild(c); }
+      } else {
+        const i = whites.indexOf(m - 1) + 1;
+        el.style.left = (i*ww - ww*0.31) + '%'; el.style.width = (ww*0.62) + '%';
+      }
+      const lab = document.createElement('span'); lab.className = 'klab'; el.appendChild(lab);
+      el.dataset.m = m;
+      piano.appendChild(el); keyEls.set(m, el);
+    }
+    const ptr = new Map();
+    piano.addEventListener('pointerdown', e => {
+      const el = e.target.closest('.key'); if (!el) return;
+      e.preventDefault();
+      const m = +el.dataset.m; ptr.set(e.pointerId, m); noteOn(m, 0.8);
+      try { piano.setPointerCapture(e.pointerId); } catch(_){}
+    });
+    const up = e => { const m = ptr.get(e.pointerId); if (m != null){ ptr.delete(e.pointerId); noteOff(m); } };
+    piano.addEventListener('pointerup', up);
+    piano.addEventListener('pointercancel', up);
+  })();
+  function labelKeys(){
+    for (const [m, el] of keyEls){
+      const i = m - (60 + octShift*12);
+      el.querySelector('.klab').textContent = (i >= 0 && i < KMAP.length) ? KMAP[i].toUpperCase() : '';
+    }
+  }
+  labelKeys();
+
+  document.addEventListener('visibilitychange', () => { if (document.hidden) releaseKeys(); });
+})();
+</script>
+</body></html>
