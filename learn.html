@@ -176,6 +176,9 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 .sp-head h2{font-size:28px}
 .sp-close{font:inherit;font-size:16px;font-weight:700;width:36px;height:36px;border-radius:50%;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer}
 .sp-list{display:flex;flex-direction:column;gap:10px}
+.tone-field{gap:6px}
+.tone-field input{width:100%;accent-color:var(--ink)}
+.tone-ends{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--ink-soft)}
 .sp-opt{font:inherit;color:var(--ink);text-align:left;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;row-gap:1px;align-items:center;padding:12px;border:1.5px solid var(--ink);border-radius:12px;background:var(--sheet);cursor:pointer;transition:transform .08s,box-shadow .08s}
 .sp-opt .ic{grid-row:1/span 2;width:42px;height:42px;border-radius:10px;background:var(--paper-2);display:grid;place-items:center}
 .sp-opt b{font-size:16px;line-height:1.2}
@@ -394,6 +397,11 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   <div class="sp-head"><h2 id="spTitle">Sound</h2><button class="sp-close" id="spClose" type="button" aria-label="Close sound panel">✕</button></div>
   <p class="help">Choose how the keyboard sounds. Picking one plays a short C major preview.</p>
   <div class="sp-list" id="spList" role="radiogroup" aria-label="Sound type"></div>
+  <div class="field tone-field">
+    <label class="label" for="toneSlider">Tone</label>
+    <input type="range" id="toneSlider" min="0" max="100" step="1" value="30">
+    <div class="tone-ends"><span>Darker</span><span>Brighter</span></div>
+  </div>
   <label class="check"><input type="checkbox" id="muteBox"> Mute all sound</label>
   <p class="help">Your choice is remembered on this device.</p>
 </aside>
@@ -460,7 +468,10 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   function fillRoots(sel, names){ names.forEach((n,i) => { const o = el('option', null, n); o.value = i; sel.appendChild(o); }); }
 
   // ---------- Audio ----------
-  let AC = null, master = null, drive = null, verb = null, soundOn = true;
+  let AC = null, master = null, drive = null, verb = null, toneFilter = null, soundOn = true;
+  let toneVal = 30;
+  try { const tv = parseInt(localStorage.getItem('hb-tone'), 10); if (tv >= 0 && tv <= 100) toneVal = tv; } catch(e){}
+  const toneHz = () => 1000 * Math.pow(16, toneVal / 100);
   const voices = new Map();
   let scheduled = [];
   const SOUNDS = {
@@ -477,7 +488,10 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       try {
         AC = new (window.AudioContext || window.webkitAudioContext)();
         master = AC.createGain(); master.gain.value = 0.3;
-        const comp = AC.createDynamicsCompressor(); master.connect(comp); comp.connect(AC.destination);
+        const comp = AC.createDynamicsCompressor();
+        // master tone filter: everything passes through it, set by the Tone slider (darker by default)
+        toneFilter = AC.createBiquadFilter(); toneFilter.type = 'lowpass'; toneFilter.Q.value = 0.5; toneFilter.frequency.value = toneHz();
+        master.connect(toneFilter); toneFilter.connect(comp); comp.connect(AC.destination);
         // gentle tanh saturation for the acid lead
         drive = AC.createWaveShaper();
         const curve = new Float32Array(1024);
@@ -503,7 +517,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       const o = [osc('triangle', f, t), osc('sine', f, t, 4), osc('sine', f*2, t), osc('sine', f*3, t)];
       mixInto(o, [0.6, 0.35, 0.18, 0.06], filt);
       filt.type = 'lowpass'; filt.Q.value = 0.7;
-      filt.frequency.setValueAtTime(Math.min(12000, f*10), t); filt.frequency.exponentialRampToValueAtTime(Math.max(300, f*2.5), t + 1.2);
+      filt.frequency.setValueAtTime(Math.min(7000, f*6), t); filt.frequency.exponentialRampToValueAtTime(Math.max(250, f*1.8), t + 1.2);
       const decay = Math.max(0.6, 2.6 - (m - 48)*0.03);
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5*vel, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0008, t + decay);
       o.forEach(x => x.stop(t + decay + 0.1));
@@ -514,7 +528,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       const f = hz(m), g = AC.createGain(), filt = AC.createBiquadFilter();
       const o = [osc('sawtooth', f, t, -9), osc('sawtooth', f, t, 9), osc('triangle', f/2, t)];
       mixInto(o, [0.3, 0.3, 0.25], filt);
-      filt.type = 'lowpass'; filt.Q.value = 1; filt.frequency.value = Math.min(4000, f*3);
+      filt.type = 'lowpass'; filt.Q.value = 1; filt.frequency.value = Math.min(2200, f*2);
       const lfo = osc('sine', 0.25, t), lg = AC.createGain(); lg.gain.value = Math.min(1500, f*0.8); lfo.connect(lg); lg.connect(filt.frequency);
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.46*vel, t + 0.45);
       filt.connect(g); g.connect(master); send(g, 0.6);
@@ -527,7 +541,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       mixInto(body, [0.22, 0.22, 0.2], filt);
       filt.type = 'lowpass'; filt.Q.value = 2.5;
       filt.frequency.setValueAtTime(Math.max(200, f*1.2), t);
-      filt.frequency.linearRampToValueAtTime(Math.min(7000, f*7), t + 4);
+      filt.frequency.linearRampToValueAtTime(Math.min(3500, f*4.5), t + 4);
       const lfo1 = osc('sine', 0.13, t), l1 = AC.createGain(); l1.gain.value = Math.min(1800, f*1.5); lfo1.connect(l1); l1.connect(filt.frequency);
       // shimmer: octave and two-octave partials that fade in slowly with their own tremolo
       const sp = AC.createGain(); sp.gain.setValueAtTime(0, t); sp.gain.linearRampToValueAtTime(0.16, t + 2.5);
@@ -561,7 +575,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       const o = [osc('sawtooth', f, t, -7), osc('square', f, t, 7)];
       mixInto(o, [0.5, 0.25], filt);
       filt.type = 'lowpass'; filt.Q.value = 4;
-      filt.frequency.setValueAtTime(Math.min(9000, f*8), t); filt.frequency.exponentialRampToValueAtTime(Math.max(200, f*1.5), t + 0.18);
+      filt.frequency.setValueAtTime(Math.min(5000, f*5), t); filt.frequency.exponentialRampToValueAtTime(Math.max(200, f*1.4), t + 0.18);
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.42*vel, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0008, t + 0.38);
       o.forEach(x => x.stop(t + 0.45));
       filt.connect(g); g.connect(master); send(g, 0.35);
@@ -634,6 +648,12 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     renderSoundUI(); ensureAudio();
     [60,64,67].forEach((m,i) => tone(m, i*0.15, 0.4)); [60,64,67].forEach(m => tone(m, 0.5, 0.9));
   }
+  $('toneSlider').value = String(toneVal);
+  $('toneSlider').addEventListener('input', e => {
+    toneVal = +e.target.value;
+    try { localStorage.setItem('hb-tone', String(toneVal)); } catch(err){}
+    if (toneFilter) toneFilter.frequency.setTargetAtTime(toneHz(), AC.currentTime, 0.03);
+  });
   $('muteBox').addEventListener('change', e => {
     soundOn = !e.target.checked;
     if (!soundOn){ [...voices.keys()].forEach(stopVoice); cancelSeq(); } else ensureAudio();
