@@ -342,20 +342,22 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   <section class="lesson" id="harmony" data-lesson="harmony">
     <div class="lesson-head"><span class="num">4</span><h2>Harmony</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
     <div class="prose">
-      <p><span class="term">Harmony</span> is how notes sound together, and how chords move from one to the next. It starts with the key. Build a triad on every degree of a major scale using only notes from that scale, and you get <b>seven chords that belong to the key</b>.</p>
-      <p>Musicians number them with <span class="term">Roman numerals</span>: uppercase for major chords (I, IV, V), lowercase for minor (ii, iii, vi), and ° for the one diminished chord (vii°). Every major key has the same pattern, so a progression written as numerals works in any key.</p>
-      <p>Each chord has a job. <b>Tonic</b> chords (I, and also iii and vi) feel like home. <b>Subdominant</b> chords (IV, ii) step away from home. <b>Dominant</b> chords (V, vii°) build tension that wants to resolve back to I. That pull from V to I is the engine behind most songs you know.</p>
+      <p><span class="term">Harmony</span> is how notes sound together, and how chords move from one to the next. In emotional electronic music (melodic techno, progressive house, trance, ambient) the chords do most of the emotional work. Under the kick and the bassline there is usually a loop of just two to four chords repeating for minutes, so those few chords set the mood of the whole track.</p>
+      <p>It starts with the key. Build a triad on every note of a scale, using only that scale's notes, and you get <b>seven chords that belong together</b>. Most emotional electronic tracks sit in a <b>minor key</b>, where the home chord itself is minor. That gives the bittersweet, nostalgic feel. Musicians number the chords with <span class="term">Roman numerals</span>: uppercase for major, lowercase for minor, ° for diminished. In a minor key the pattern is <b>i ii° III iv v VI VII</b>.</p>
+      <p>Each chord has a role. <b>i</b> is home, where the drop lands. <b>VI</b> and <b>III</b> are major chords hiding inside a minor key: they bring the lift, the hope in a sad track. <b>iv</b> adds longing. <b>VII</b> pushes back to i without the hard "the end" feeling of classical V → I, so the music seems to float instead of close. That VI → VII → i climb is behind countless breakdowns. Switch the mode to major to hear the brighter, festival side.</p>
     </div>
     <div class="tool">
       <div class="controls">
         <label class="field"><span class="label">Key</span><select id="keyRoot"></select></label>
-        <p class="help" style="flex:1 1 240px">Tap a chord to hear it and see it on the keyboard.</p>
+        <div class="field"><span class="label">Mode</span><div class="seg" id="keyMode"><button type="button" data-v="minor" aria-pressed="true">Minor</button><button type="button" data-v="major" aria-pressed="false">Major</button></div></div>
+        <div class="field"><span class="label">Playback</span><div class="seg" id="keyGroove"><button type="button" data-v="1" aria-pressed="true">Groove · 122 BPM</button><button type="button" data-v="0" aria-pressed="false">Chords only</button></div></div>
       </div>
+      <p class="help">Tap a chord to hear it and see it on the keyboard. Try the Dreamy or Shimmer pad from the Sound panel.</p>
       <div class="cards" id="keyCards"></div>
       <div class="piano-wrap"><div class="piano" id="pianoHarmony"></div></div>
-      <p class="status" id="keyStatus">Every major key has the same chord pattern: I ii iii IV V vi vii°.</p>
+      <p class="status" id="keyStatus">The chords of A minor.</p>
       <div class="field">
-        <span class="label">Famous progressions in this key</span>
+        <span class="label">Emotional electronic progressions in this key</span>
         <div class="progs" id="progs"></div>
       </div>
     </div>
@@ -973,39 +975,54 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 
   // ---------- 4. Harmony ----------
   const pH = makePiano($('pianoHarmony'));
-  fillRoots($('keyRoot'), ROOT_MAJ.map(n => n + ' major'));
+  fillRoots($('keyRoot'), ROOT_MIN);
   const NUM = ['I','II','III','IV','V','VI','VII'];
-  const FN = ['Tonic','Subdominant','Tonic','Subdominant','Dominant','Tonic','Dominant'];
-  const FNDESC = {Tonic:'feels like home', Subdominant:'steps away from home', Dominant:'builds tension that wants to go home'};
-  const PROGS = [
-    {name:'Pop anthem', note:'Countless hits since the 2000s', deg:[0,4,5,3]},
-    {name:'Fifties doo-wop', note:'Classic 1950s ballads', deg:[0,5,3,4]},
-    {name:'Three-chord rock', note:'Blues, rock and folk', deg:[0,3,4,0]},
-    {name:'Jazz turnaround', note:'The ii–V–I of jazz standards', deg:[1,4,0]}
-  ];
-  let keyRoot = 0, keyChords = [], keyCardEls = [];
+  const ROLES = {
+    minor:[['Home','home base. Drops and endings land here.'],['Tension','dark and unstable. Use it briefly.'],['Bright home','the relative major: hope inside the sadness.'],['Longing','reaches away from home with a wistful feel.'],['Soft pull','a gentle pull back home, softer than the major V of classical music.'],['Lift','a warm major chord that opens the sky. The emotional peak of many breakdowns.'],['Push','drives forward into i without fully closing, so the track floats.']],
+    major:[['Home','settled and bright. The drop or the resolution.'],['Step away','moves off home gently.'],['Soft home','a dreamy stand-in for home.'],['Lift','the big open chord of anthems.'],['Pull home','strong tension that wants to resolve to I.'],['Bittersweet','the minor chord inside a major key: emotion in a happy track.'],['Tension','unstable and restless. It wants to move.']]
+  };
+  const PROGS = {
+    minor:[
+      {name:'Euphoric anthem', note:'Trance and festival breakdowns', deg:[0,5,2,6]},
+      {name:'Melodic techno drive', note:'Dark, hypnotic two-chord sway', deg:[0,6,5,6]},
+      {name:'Bittersweet progressive', note:'Long progressive house builds', deg:[0,3,6,2]},
+      {name:'The lift into the drop', note:'Rising energy that lands on home', deg:[3,5,6,0]},
+      {name:'Ambient drift', note:'Slow, floating, never quite settles', deg:[0,4,5,2]}
+    ],
+    major:[
+      {name:'Uplifting house', note:'Feel-good piano house', deg:[0,4,5,3]},
+      {name:'Sunrise set', note:'Hopeful, open, morning-after', deg:[3,0,4,5]},
+      {name:'Festival lift', note:'Big-room build before the drop', deg:[5,3,0,4]},
+      {name:'Deep house glide', note:'Smooth and warm', deg:[1,4,0,0]}
+    ]
+  };
+  let keyRoot = 9, keyMode = 'minor', groove = true, keyChords = [], keyCardEls = [];
+  $('keyRoot').value = '9';
   function buildKey(){
-    const iv = SCALES.major.iv, names = spellScale(keyRoot, 'major');
+    const iv = SCALES[keyMode].iv, names = spellScale(keyRoot, keyMode);
     keyChords = iv.map((_,d) => {
       const r = (keyRoot + iv[d]) % 12;
       const a = iv[(d+2)%7] - iv[d] + (d+2 > 6 ? 12 : 0), b = iv[(d+4)%7] - iv[d] + (d+4 > 6 ? 12 : 0);
       const q = a === 4 ? 'maj' : b === 7 ? 'min' : 'dim';
       const numeral = (q === 'maj' ? NUM[d] : NUM[d].toLowerCase()) + (q === 'dim' ? '°' : '');
       const notes = [0,2,4].map(k => 60 + keyRoot + iv[(d+k)%7] + (d+k > 6 ? 12 : 0));
-      return {root:r, q, name:names[d], numeral, fn:FN[d], tones:[names[d], names[(d+2)%7], names[(d+4)%7]], notes:fit(notes)};
+      const [role, roleDesc] = ROLES[keyMode][d];
+      return {root:r, q, name:names[d], numeral, role, roleDesc, tones:[names[d], names[(d+2)%7], names[(d+4)%7]], notes:fit(notes)};
     });
   }
+  const keyName = () => `${SCALES[keyMode].names[keyRoot]} ${keyMode}`;
   function renderKey(){
     buildKey();
+    const opt = $('keyRoot').options; for (let i = 0; i < 12; i++) opt[i].textContent = SCALES[keyMode].names[i];
     const w = $('keyCards'); w.textContent = ''; keyCardEls = [];
     keyChords.forEach((c,i) => {
       const b = el('button', 'ccard'); b.type = 'button';
-      b.append(el('span', 'rn', c.numeral), el('span', 'sym', sym(c)), el('span', 'fn', c.fn));
+      b.append(el('span', 'rn', c.numeral), el('span', 'sym', sym(c)), el('span', 'fn', c.role));
       b.addEventListener('click', () => pickKeyChord(i, true));
       w.appendChild(b); keyCardEls.push(b);
     });
     const pw = $('progs'); pw.textContent = '';
-    PROGS.forEach(p => {
+    PROGS[keyMode].forEach(p => {
       const row = el('div', 'prog');
       const pn = el('div', 'pn', p.name); pn.appendChild(el('small', null, p.note));
       const rom = el('div', 'rom', p.deg.map(d => keyChords[d].numeral).join(' – '));
@@ -1015,33 +1032,44 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       row.append(pn, rom, chs, b); pw.appendChild(row);
     });
     pH.marks(new Map());
-    const km = spellMap(spellScale(keyRoot, 'major'), SCALES.major.iv.map(v => (keyRoot + v) % 12)); pH.names(m => km.get(m % 12));
-    say('keyStatus', `The chords of ${ROOT_MAJ[keyRoot]} major: ${keyChords.map(sym).join(', ')}.`, '');
+    const km = spellMap(spellScale(keyRoot, keyMode), SCALES[keyMode].iv.map(v => (keyRoot + v) % 12)); pH.names(m => km.get(m % 12));
+    say('keyStatus', `The chords of ${keyName()}: ${keyChords.map(sym).join(', ')}.`, '');
   }
   function pickKeyChord(i, sound){
     cancelSeq();
     const c = keyChords[i];
     keyCardEls.forEach((e,j) => e.classList.toggle('sel', j === i));
     const marks = new Map(); c.notes.forEach((m,k) => marks.set(m, ['R','3','5'][k])); pH.marks(marks);
-    if (sound){ ensureAudio(); c.notes.forEach(m => tone(m, 0, 1.0)); pH.flash(c.notes, 900); }
-    say('keyStatus', `${c.numeral} is ${longName(c)}: ${c.tones.join(' · ')}. ${c.fn}: it ${FNDESC[c.fn]}.`, '');
+    if (sound){ ensureAudio(); c.notes.forEach(m => tone(m, 0, 1.4)); pH.flash(c.notes, 1300); }
+    say('keyStatus', `${c.numeral} is ${longName(c)}: ${c.tones.join(' · ')}. ${c.role}: ${c.roleDesc}`, '');
   }
   function playProg(p){
     ensureAudio(); cancelSeq();
     keyCardEls.forEach(e => e.classList.remove('sel'));
+    const beat = 60 / 122, bar = groove ? beat*4 : 1.05;
     p.deg.forEach((d,i) => {
-      const c = keyChords[d], at = i * 1.05;
-      c.notes.forEach(m => tone(m, at, 0.95));
-      tone(c.notes[0] - 12, at, 0.95, 0.45);
+      const c = keyChords[d], at = i * bar;
+      if (groove){
+        // sustained chord, off-beat bass and an eighth-note arpeggio: the basic shape of a melodic house loop
+        c.notes.forEach(m => tone(m, at, bar*0.96, 0.5));
+        for (let k = 0; k < 4; k++) tone(c.notes[0] - 12, at + beat*(k + 0.5), beat*0.42, 0.7);
+        const arp = [c.notes[0], c.notes[1], c.notes[2], c.notes[0] + 12, c.notes[2], c.notes[1], c.notes[0] + 12, c.notes[2]].map(m => m + 12);
+        arp.forEach((m,k) => tone(m, at + k*beat/2, beat*0.4, 0.32));
+      } else {
+        c.notes.forEach(m => tone(m, at, 0.95));
+        tone(c.notes[0] - 12, at, 0.95, 0.45);
+      }
       later(at*1000, () => {
         keyCardEls.forEach((e,j) => e.classList.toggle('play', j === d));
-        pH.flash(c.notes, 950);
+        pH.flash(c.notes, bar*1000 - 60);
         say('keyStatus', `${p.name}: ${p.deg.map((x,k) => k === i ? `[${sym(keyChords[x])}]` : sym(keyChords[x])).join(' – ')}`, '');
       });
     });
-    later(p.deg.length*1050, () => keyCardEls.forEach(e => e.classList.remove('play')));
+    later(p.deg.length*bar*1000, () => keyCardEls.forEach(e => e.classList.remove('play')));
   }
   $('keyRoot').addEventListener('change', e => { keyRoot = +e.target.value; cancelSeq(); renderKey(); });
+  onSeg($('keyMode'), v => { keyMode = v; cancelSeq(); renderKey(); });
+  onSeg($('keyGroove'), v => { groove = v === '1'; cancelSeq(); });
   renderKey();
 
   // ---------- 5. Gallery ----------
