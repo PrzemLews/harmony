@@ -2,6 +2,11 @@
 
 A browser game for learning music theory by playing chords. Quaver, a little eighth note, runs along a treble staff. Play the right chord on your MIDI keyboard to open each gate in Quaver's path.
 
+## Pages
+
+- `index.html` is the game.
+- `learn.html` is the intro module: five playable lessons on notes and intervals, scales, chords and inversions, harmony in a key (Roman numerals, tonic/subdominant/dominant, famous progressions), and a gallery of nine chord types.
+
 ## How to play
 
 - **Gates** carry a chord symbol (C, Am, F…). Play that chord before Quaver reaches the gate. Any octave and any inversion counts. Miss it and Quaver loses a life.
