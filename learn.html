@@ -146,7 +146,7 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 .key.play .nm{color:var(--sheet)}
 .piano.named .nm{display:none}
 .key .kn{font-size:10px;font-weight:700;line-height:1.1;color:var(--ink-soft);white-space:nowrap}
-.key.b .kn{font-size:9px;color:var(--paper-2)}
+.key.b .kn{font-size:9px;color:var(--paper-2);white-space:pre-line;text-align:center}
 .key.mk .kn{color:var(--ink)}
 .key.b.mk .kn{color:var(--sheet)}
 .key.on .kn,.key.hold .kn{color:var(--ink)}
@@ -699,6 +699,8 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 
   // ---------- 1. Notes and steps ----------
   const pN = makePiano($('pianoNotes'), {names:true});
+  const BLACK_BOTH = ['','C♯\nD♭','','D♯\nE♭','','','F♯\nG♭','','G♯\nA♭','','A♯\nB♭',''];
+  pN.names(m => { const pc = m % 12; return isWhite(m) ? LET[LETPC.indexOf(pc)] + (pc === 0 ? (Math.floor(m/12) - 1) : '') : BLACK_BOTH[pc]; });
   const ivTable = $('ivTable'); const ivEls = [];
   IVNAMES.forEach((n,i) => { const d = el('div', 'iv'); const b = el('b', null, i + (i === 1 ? ' half step' : ' half steps')); d.append(b, document.createTextNode(n)); ivTable.appendChild(d); ivEls.push(d); });
   let prevNote = null, notesIdle = 0;
@@ -743,6 +745,13 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     const flat = names.some(n => n.includes('♭')), map = new Map();
     for (let pc = 0; pc < 12; pc++) map.set(pc, (flat ? FLATS : SHARPS)[pc]);
     iv.forEach((v,i) => map.set((sc.root + v) % 12, names[i]));
+    return map;
+  }
+  // same idea for any set of spelled notes (a chord, a key)
+  function spellMap(names, pcs){
+    const flat = names.some(n => n.includes('♭')), map = new Map();
+    for (let pc = 0; pc < 12; pc++) map.set(pc, (flat ? FLATS : SHARPS)[pc]);
+    pcs.forEach((pc,i) => map.set(pc, names[i]));
     return map;
   }
   function renderScale(){
@@ -806,6 +815,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     const v = voicing(), pcs = QUAL[ch.q].iv.map(i => (ch.root + i) % 12), marks = new Map();
     v.forEach(m => { const r = pcs.indexOf(m % 12); marks.set(m, r === 0 ? 'R' : r === 1 ? '3' : '5'); });
     pC.marks(marks);
+    const cm = spellMap(sp, pcs); pC.names(m => cm.get(m % 12));
   }
   $('chordRoot').addEventListener('change', e => { ch.root = +e.target.value; renderChord(); });
   onSeg($('chordQ'), v => { ch.q = v; renderChord(); });
@@ -885,6 +895,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       row.append(pn, rom, chs, b); pw.appendChild(row);
     });
     pH.marks(new Map());
+    const km = spellMap(spellScale(keyRoot, 'major'), SCALES.major.iv.map(v => (keyRoot + v) % 12)); pH.names(m => km.get(m % 12));
     say('keyStatus', `The chords of ${ROOT_MAJ[keyRoot]} major: ${keyChords.map(sym).join(', ')}.`, '');
   }
   function pickKeyChord(i, sound){
@@ -919,6 +930,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   let galRoot = 0, galSel = null; const galEls = {};
   function renderGallery(){
     const w = $('galCards'); w.textContent = '';
+    if (!galSel){ const gm = spellMap(spellScale(galRoot, 'major'), SCALES.major.iv.map(v => (galRoot + v) % 12)); pG.names(m => gm.get(m % 12)); }
     Object.keys(QUAL).forEach(q => {
       const c = {root:galRoot, q}, b = el('button', 'ccard' + (galSel === q ? ' sel' : '')); b.type = 'button';
       b.append(el('span', 'rn', QUAL[q].w.toUpperCase()), el('span', 'sym', sym(c)), el('span', 'fn', QUAL[q].f.join(' – ') + '   ·   ' + spell(c).join(' ')), el('span', 'desc', QUAL[q].d));
@@ -931,6 +943,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     Object.entries(galEls).forEach(([k,e]) => e.classList.toggle('sel', k === q));
     const c = {root:galRoot, q}, notes = fit(QUAL[q].iv.map(i => 60 + galRoot + i));
     const marks = new Map(); notes.forEach((m,k) => marks.set(m, QUAL[q].f[k])); pG.marks(marks);
+    const gm = spellMap(spell(c), QUAL[q].iv.map(i => (galRoot + i) % 12)); pG.names(m => gm.get(m % 12));
     notes.forEach((m,i) => tone(m, i*0.12, 0.3)); notes.forEach(m => tone(m, 0.6, 1.1));
     later(600, () => pG.flash(notes, 1000));
     say('galStatus', `${longName(c)} (${sym(c)}): ${spell(c).join(' · ')}. Now play it yourself.`, '');
