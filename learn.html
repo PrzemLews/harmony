@@ -318,7 +318,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <div class="workout" id="workout">
       <div class="wk-head">
         <div><span class="label">Your turn</span><h3 class="wk-title">Chord workout</h3></div>
-        <div class="wk-count"><span id="wkCount">Step 1 of 17</span><div class="wk-bar" aria-hidden="true"><i id="wkFill"></i></div></div>
+        <div class="wk-count"><span id="wkCount">Step 1 of 13</span><div class="wk-bar" aria-hidden="true"><i id="wkFill"></i></div></div>
       </div>
       <ol class="wk-rounds" id="wkRounds"></ol>
       <div class="wk-card" id="wkCard" aria-live="polite">
@@ -879,12 +879,11 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     {name:'Major chords', tip:'Bright and stable.', steps:[{root:0,q:'maj'},{root:5,q:'maj'},{root:7,q:'maj'}]},
     {name:'Minor chords', tip:'Same recipe, the middle note one half step lower.', steps:[{root:9,q:'min'},{root:2,q:'min'},{root:4,q:'min'}]},
     {name:'The pop progression', tip:'C – Am – F – G: thousands of songs use this order.', steps:[{root:0,q:'maj'},{root:9,q:'min'},{root:5,q:'maj'},{root:7,q:'maj'}]},
-    {name:'Inversions', tip:'Same chord, different note at the bottom.', steps:[{root:0,q:'maj',inv:1},{root:0,q:'maj',inv:2},{root:5,q:'maj',inv:1}]},
-    {name:'Black keys', tip:'New roots bring sharps and flats into the chord.', steps:[{root:2,q:'maj'},{root:9,q:'maj'},{root:4,q:'maj'},{root:10,q:'maj'}]}
+    {name:'Inversions', tip:'Same chord, different note at the bottom.', steps:[{root:0,q:'maj',inv:1},{root:0,q:'maj',inv:2},{root:5,q:'maj',inv:1}]}
   ];
   const WK = []; ROUNDS.forEach((r,ri) => r.steps.forEach((st,si) => WK.push({...st, ri, si})));
   let wkIdx = 0, wkBusy = false;
-  try { const v = parseInt(localStorage.getItem('hb-workout') || '0', 10); if (v >= 0 && v <= WK.length) wkIdx = v; } catch(e){}
+  try { const v = parseInt(localStorage.getItem('hb-workout') || '0', 10); if (v >= 0) wkIdx = Math.min(v, WK.length); } catch(e){}
   const saveWk = () => { try { localStorage.setItem('hb-workout', String(wkIdx)); } catch(e){} };
   const bassName = t => spell(t)[t.inv];
   const wkSym = t => sym(t) + (t.inv ? '/' + bassName(t) : '');
@@ -915,7 +914,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       $('wkRoundName').textContent = 'Workout complete';
       $('wkSym').textContent = '✓';
       $('wkName').textContent = `You finished all ${WK.length} steps`;
-      $('wkTones').textContent = 'Majors, minors, inversions and black-key chords.';
+      $('wkTones').textContent = 'Majors, minors, the pop progression and inversions.';
       $('wkTip').textContent = 'Next up: lesson 4, where these chords team up inside a key.';
       return;
     }
