@@ -141,7 +141,7 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 .key.mk .ml{display:block}
 .key.w.mk{background:#F3E2B4}
 .key.b.mk{background:#5C4A1C}
-.key.on{background:var(--marigold)!important}
+.key.on,.key.hold{background:var(--marigold)!important}
 .key.play{background:var(--leaf)!important}
 .key.play .nm{color:var(--sheet)}
 
@@ -547,12 +547,18 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   function resetNotesTool(){
     if (heldCount.size){ notesIdle = setTimeout(resetNotesTool, IDLE_MS); return; }
     prevNote = null;
+    setHold([]);
     $('lastNote').textContent = '—';
     $('lastIv').textContent = 'Play two notes';
     ivEls.forEach(e => e.classList.remove('cur'));
   }
+  function setHold(ms){
+    const keep = new Set(ms.map(fold));
+    for (const [k, e] of pN.keys) e.classList.toggle('hold', keep.has(k));
+  }
   handlers.push(m => {
     clearTimeout(notesIdle);
+    setHold(prevNote != null ? [prevNote, m] : [m]);
     notesIdle = setTimeout(resetNotesTool, IDLE_MS);
     $('lastNote').textContent = noteName(m);
     if (prevNote != null && prevNote !== m){
