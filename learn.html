@@ -542,8 +542,18 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   const pN = makePiano($('pianoNotes'), {names:true});
   const ivTable = $('ivTable'); const ivEls = [];
   IVNAMES.forEach((n,i) => { const d = el('div', 'iv'); const b = el('b', null, i + (i === 1 ? ' half step' : ' half steps')); d.append(b, document.createTextNode(n)); ivTable.appendChild(d); ivEls.push(d); });
-  let prevNote = null;
+  let prevNote = null, notesIdle = 0;
+  const IDLE_MS = 3 * 60 * 1000;
+  function resetNotesTool(){
+    if (heldCount.size){ notesIdle = setTimeout(resetNotesTool, IDLE_MS); return; }
+    prevNote = null;
+    $('lastNote').textContent = '—';
+    $('lastIv').textContent = 'Play two notes';
+    ivEls.forEach(e => e.classList.remove('cur'));
+  }
   handlers.push(m => {
+    clearTimeout(notesIdle);
+    notesIdle = setTimeout(resetNotesTool, IDLE_MS);
     $('lastNote').textContent = noteName(m);
     if (prevNote != null && prevNote !== m){
       const d = Math.abs(m - prevNote), dir = m > prevNote ? 'up' : 'down';
