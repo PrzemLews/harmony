@@ -231,6 +231,55 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 @keyframes wkShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .wk-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 @media (prefers-reduced-motion:reduce){.wk-card.no{animation:none}.wk-bar i,.wk-card{transition:none}}
+/* chord moves */
+.moves-legend{list-style:none;margin:0 0 .8em;padding:0;display:flex;flex-direction:column;gap:6px}
+.moves-legend li{display:block;padding-left:36px;text-indent:-36px}
+.moves-legend .sw{margin-right:10px;text-indent:0}
+.sw{flex:none;display:inline-block;width:26px;height:0;border-top:4px solid;transform:translateY(-3px)}
+.sw.t4{border-color:var(--ink)}
+.sw.t2{border-color:var(--coral)}
+.sw.t3{border-color:var(--leaf);border-top-style:dashed}
+.mv-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px 24px;align-items:start}
+.mv-map-wrap{display:flex;flex-direction:column;gap:6px;min-width:0}
+.mv-map{width:100%;max-width:420px;height:auto;align-self:center}
+.mv-map .edge{fill:none;stroke-width:2;opacity:.18}
+.mv-map .edge.t4,.mv-map .hl.t4{stroke:var(--ink)}
+.mv-map .edge.t2,.mv-map .hl.t2{stroke:var(--coral)}
+.mv-map .edge.t3,.mv-map .hl.t3{stroke:var(--leaf);stroke-dasharray:6 5}
+.mv-map .edge.path{opacity:.55;stroke-width:3}
+.mv-map .hl{fill:none;stroke-width:5;stroke-linecap:round}
+.mv-map .arrow.t4{fill:var(--ink)} .mv-map .arrow.t2{fill:var(--coral)} .mv-map .arrow.t3{fill:var(--leaf)}
+.mv-map .node{cursor:pointer;outline:none}
+.mv-map .node .role{paint-order:stroke;stroke:var(--sheet);stroke-width:4px;stroke-linejoin:round}
+.mv-map .node circle{fill:var(--sheet);stroke:var(--ink);stroke-width:2}
+.mv-map .node text{font-family:var(--f-chord);font-weight:700;font-size:22px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.mv-map .node .role{font-family:var(--f-body);font-size:10px;font-weight:600;fill:var(--ink-soft)}
+.mv-map .node.cur circle{fill:var(--marigold);stroke-width:3}
+.mv-map .node.target circle{stroke-dasharray:5 4;stroke-width:3;stroke:var(--leaf)}
+.mv-map .node:focus-visible{outline:none}
+.mv-map .node:focus-visible circle{stroke:var(--marigold);stroke-width:4}
+.mv-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.mv-move{display:flex;flex-direction:column;gap:4px;padding:16px;border:2px solid var(--ink);border-radius:12px;background:var(--paper);min-height:132px}
+.mv-pair{font-family:var(--f-chord);font-weight:700;font-size:30px;line-height:1.15}
+.mv-emotion{font-size:15px}
+.mv-emotion .src{display:block;font-size:12px;color:var(--ink-soft);margin-top:4px}
+.mv-move.t4{border-color:var(--ink)} .mv-move.t2{border-color:var(--coral)} .mv-move.t3{border-color:var(--leaf)}
+.mv-journeys{display:flex;flex-direction:column;gap:8px}
+.mv-j{font:inherit;color:var(--ink);text-align:left;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:10px 12px;border:1.5px solid var(--ink);border-radius:10px;background:var(--sheet);cursor:pointer}
+.mv-j b{font-size:15px}
+.mv-j .seq{grid-column:1;font-family:var(--f-chord);font-weight:700;font-size:17px;color:var(--ink-soft);overflow-wrap:anywhere}
+.mv-j .st{grid-row:1/span 2;grid-column:2;align-self:center;font-size:12px;font-weight:700;color:var(--ink-soft);white-space:nowrap}
+.mv-j.sel{background:var(--marigold)} .mv-j.sel .seq{color:var(--ink)}
+.mv-j.done .st{color:var(--leaf)}
+.mv-now{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:2px solid var(--ink);border-radius:12px}
+.mv-now-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;font-size:15px}
+.mv-now-head span{font-weight:700;font-variant-numeric:tabular-nums}
+.mv-steps{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.mv-steps .c{font-family:var(--f-chord);font-weight:700;font-size:22px;padding:2px 12px;border:1.5px solid var(--ink);border-radius:999px;background:var(--sheet)}
+.mv-steps .c.done{background:var(--leaf);border-color:var(--leaf);color:var(--sheet)}
+.mv-steps .c.cur{background:var(--marigold)}
+.mv-steps .ar{font-size:12px;font-weight:700;color:var(--ink-soft)}
+@media (max-width:820px){.mv-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -254,18 +303,19 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   <section class="hero">
     <span class="label">Intro module</span>
     <h1>Harmony basics</h1>
-    <p class="lead">Before the gates start coming, here is the music theory the game uses. Five short lessons, each with a keyboard you can play: use your MIDI controller, your computer keys, or tap the keys on screen.</p>
+    <p class="lead">Before the gates start coming, here is the music theory the game uses. Six short lessons, each with a keyboard you can play: use your MIDI controller, your computer keys, or tap the keys on screen.</p>
     <div class="toc" id="toc">
       <button type="button" data-go="notes"><b>1</b>Notes and steps</button>
       <button type="button" data-go="scales"><b>2</b>Scales</button>
       <button type="button" data-go="chords"><b>3</b>Chords</button>
       <button type="button" data-go="harmony"><b>4</b>Harmony</button>
       <button type="button" data-go="gallery"><b>5</b>Chord gallery</button>
+      <button type="button" data-go="moves"><b>6</b>Chord moves</button>
       <a href="index.html">Skip to the game →</a>
     </div>
     <div class="progress" aria-live="polite">
-      <div class="segs" id="progSegs"><i></i><i></i><i></i><i></i><i></i></div>
-      <span id="progText">0 of 5 lessons done</span>
+      <div class="segs" id="progSegs"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <span id="progText">0 of 6 lessons done</span>
     </div>
     <p class="help">Computer keys: <kbd>A</kbd> to <kbd>;</kbd> play the white keys from middle C, <kbd>W</kbd> <kbd>E</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>O</kbd> <kbd>P</kbd> the black keys, <kbd>Z</kbd> / <kbd>X</kbd> shift the octave.</p>
   </section>
@@ -427,6 +477,55 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <div class="cards wide" id="galCards"></div>
       <div class="piano-wrap"><div class="piano" id="pianoGallery"></div></div>
       <p class="status" id="galStatus">Pick a chord to see its notes.</p>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="lesson" id="moves" data-lesson="moves">
+    <div class="lesson-head"><span class="num">6</span><h2>Chord moves</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+    <div class="prose">
+      <p>A single chord has a mood, but music happens in the <span class="term">move</span> from one chord to the next. This lesson maps every move between the seven chords of C major: <b>C, Dm, Em, F, G, Am, B°</b>.</p>
+      <p>There are only <b>three kinds of move</b>: by a <b>2nd</b>, a <b>3rd</b> or a <b>4th</b>. Every other jump is one of these turned upside down (up a 5th is the same chord change as down a 4th, up a 6th the same as down a 3rd). So from any chord you have six options: up or down a 2nd, 3rd or 4th.</p>
+      <ul class="moves-legend">
+        <li><span class="sw t4" aria-hidden="true"></span><b>4ths: the story loop.</b> C → F → B° → Em → Am → Dm → G → C plays like a hero's journey. Run backwards, it makes setbacks.</li>
+        <li><span class="sw t2" aria-hidden="true"></span><b>2nds: the intensity loop.</b> Neighbouring chords that raise or release tension, like the deceptive G → Am.</li>
+        <li><span class="sw t3" aria-hidden="true"></span><b>3rds: the shading loop.</b> These chords share two notes, so only one note moves and the change is subtle.</li>
+      </ul>
+      <p class="help">Based on notes from Pur Pasteur's video <a href="https://www.youtube.com/watch?v=n6MViTAfNio" target="_blank" rel="noopener">Which Chord Sequences Produce Which Emotions</a>. The three kinds of move are standard theory. The emotion labels are one composer's reading from writing hundreds of songs, not universal rules, so trust your own ears too.</p>
+    </div>
+    <div class="tool" id="movesTool">
+      <div class="mv-grid">
+        <div class="mv-map-wrap">
+          <svg class="mv-map" id="mvMap" viewBox="0 0 360 360" role="img" aria-label="Map of the seven chords of C major arranged in the story loop, with lines for moves by 4ths, 2nds and 3rds"></svg>
+          <p class="help">Play a chord on the keyboard, or tap one on the map. The line shows the move you just made.</p>
+        </div>
+        <div class="mv-side">
+          <div class="mv-move" id="mvMove" aria-live="polite">
+            <span class="label" id="mvMoveType">Your move</span>
+            <span class="mv-pair" id="mvPair">Play any chord to start</span>
+            <span class="mv-emotion" id="mvEmotion">Then play another one and see what the move feels like.</span>
+          </div>
+          <div class="field">
+            <span class="label">Journeys to practise</span>
+            <div class="mv-journeys" id="mvJourneys"></div>
+          </div>
+        </div>
+      </div>
+      <div class="mv-now" id="mvNow" hidden>
+        <div class="mv-now-head">
+          <b id="mvJName"></b>
+          <span id="mvJCount"></span>
+        </div>
+        <div class="wk-bar" aria-hidden="true"><i id="mvJFill"></i></div>
+        <div class="mv-steps" id="mvSteps"></div>
+        <div class="wk-actions">
+          <button class="btn ghost" type="button" id="mvHear">Hear the journey</button>
+          <button class="pill" type="button" id="mvRestart">Start again</button>
+          <button class="pill" type="button" id="mvFree">Back to free play</button>
+        </div>
+      </div>
+      <div class="piano-wrap"><div class="piano" id="pianoMoves"></div></div>
+      <p class="status" id="mvStatus">Free play: travel the map however you like. Pick a journey to follow a set path.</p>
     </div>
   </section>
 
@@ -1383,8 +1482,189 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   });
   renderGallery();
 
+  // ---------- 6. Chord moves ----------
+  // the 7 chords of C major in story-loop order (each step = up a 4th)
+  const MV = [
+    {sym:'C', root:0, q:'maj', role:'home'}, {sym:'F', root:5, q:'maj', role:'to dominant'}, {sym:'B°', root:11, q:'dim', role:'on its own'},
+    {sym:'Em', root:4, q:'min', role:'to home'}, {sym:'Am', root:9, q:'min', role:'minor home'}, {sym:'Dm', root:2, q:'min', role:'to dominant'},
+    {sym:'G', root:7, q:'maj', role:'to home'}
+  ];
+  const mvIdx = name => MV.findIndex(c => c.sym === name);
+  const mvNotes = i => QUAL[MV[i].q].iv.map(v => 60 + MV[i].root + v);
+  const mvTones = i => spell({root:MV[i].root, q:MV[i].q, name:MV[i].sym[0]}).join(' · ');
+  function moveType(a, b){
+    const d = ((b - a) % 7 + 7) % 7;
+    return {1:{t:4, dir:'up', loop:'story loop'}, 6:{t:4, dir:'down', loop:'story loop, backwards'}, 5:{t:2, dir:'up', loop:'intensity loop'}, 2:{t:2, dir:'down', loop:'intensity loop'}, 3:{t:3, dir:'up', loop:'shading loop'}, 4:{t:3, dir:'down', loop:'shading loop'}}[d];
+  }
+  // emotional readings from the source notes
+  const EMO = {
+    'C>F':'Warmth. The journey sets out.', 'F>B°':'Alarm. Something is wrong.', 'B°>Em':'Despair.', 'Em>Am':'Acceptance.', 'Am>Dm':'Resignation.',
+    'Dm>G':'The fork in the road brightens: the way home opens up.', 'G>C':'The happy return home.',
+    'G>Dm':'A setback. You expected to arrive home and got thrown back.', 'F>C':'The "amen" ending. More peaceful than G → C, because every note can settle down onto home.',
+    'Dm>Am':'The fork in the road slides into the minor side.',
+    'Dm>Em':'A similar pair stepped up a notch. The tension rises.', 'F>G':'A similar pair stepped up a notch. The tension rises.',
+    'Em>F':'Finding an oasis after the minor chords. One of the most emotional moves in the system.',
+    'G>Am':'The deceptive ending: you expected home and got its sad twin.', 'G>F':'A soothing dodge of the expected arrival. G → F → C is a gentler ending.',
+    'F>Em':'Sudden loss, or fragility.', 'Em>Dm':'Faltering under a weight.',
+    'Am>C':'Pure gain: the same place, just happy instead of sad.', 'F>Dm':'Close cousins. Same mood, less cheesy.', 'Dm>F':'Close cousins. Same mood, a little brighter.',
+    'G>B°':'G\'s tense cousin. Adds tension, so the resolution hits harder.', 'C>Em':'Lonely.', 'Em>G':'A happy surprise.', 'B°>Dm':'A strange, "negative surprise".'
+  };
+  const GENERIC = {
+    '4up':'Moves the story forward along the loop.', '4down':'Runs the story backwards: a step back, a small setback.',
+    '2up':'Steps up to the neighbouring chord and raises the intensity.', '2down':'Steps down to the neighbouring chord and lets the intensity drop.',
+    '3up':'A subtle shift of colour: two notes stay, only one moves.', '3down':'A subtle shift of colour: two notes stay, only one moves.'
+  };
+  const JOURNEYS = [
+    {name:"The hero's journey", note:'The full story loop by 4ths', seq:['C','F','B°','Em','Am','Dm','G','C']},
+    {name:'The setback', note:'Nearly home, then thrown back', seq:['C','F','Dm','G','Dm','G','C']},
+    {name:'The oasis', note:'Out of the minor chords into the light', seq:['Am','Em','F','G','C']},
+    {name:'The deceptive twist', note:'Expect home, get its sad twin, then win it back', seq:['C','F','G','Am','C']},
+    {name:'Gentle endings', note:'The soft way home, then the amen', seq:['C','Dm','G','F','C']},
+    {name:'Shading', note:'Small moves by 3rds', seq:['C','Em','G','B°','C']},
+    {name:'Faltering', note:'Loss and weight, then recovery', seq:['C','F','Em','Dm','G','C']}
+  ];
+  let mvCur = -1, mvPrev = -1, mvLastHeld = -1, mvJ = -1, mvStep = 0, mvDone = new Set();
+  try { const raw = localStorage.getItem('hb-journeys'); if (raw) mvDone = new Set(JSON.parse(raw)); } catch(e){}
+  const pM = makePiano($('pianoMoves'));
+  { const cm = new Map(); [0,2,4,5,7,9,11].forEach((pc,i) => cm.set(pc, 'CDEFGAB'[i])); [1,3,6,8,10].forEach(pc => cm.set(pc, FLATS[pc])); pM.names(m => cm.get(m % 12)); }
+  // map geometry
+  const SVGNS = 'http://www.w3.org/2000/svg', CX = 180, CY = 180, R = 132, NR = 27;
+  const pos = i => { const a = -Math.PI/2 + i * 2*Math.PI/7; return [CX + R*Math.cos(a), CY + R*Math.sin(a)]; };
+  const svg = $('mvMap');
+  const sv = (tag, attrs, parent) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; };
+  const gEdges = sv('g', {}), gHl = sv('g', {}), gNodes = sv('g', {});
+  const edgeEls = new Map();
+  [[1,4],[2,2],[3,3]].forEach(([k,t]) => { for (let i = 0; i < 7; i++){ const j = (i + k) % 7, [x1,y1] = pos(i), [x2,y2] = pos(j); edgeEls.set([i,j].sort().join('-'), sv('line', {x1, y1, x2, y2, class:'edge t' + t}, gEdges)); } });
+  const nodeEls = MV.map((c,i) => {
+    const [x,y] = pos(i), g = sv('g', {class:'node', tabindex:'0', role:'button', 'aria-label':`Play ${c.sym}`}, gNodes);
+    sv('circle', {cx:x, cy:y, r:NR}, g);
+    const t = sv('text', {x, y}, g); t.textContent = c.sym;
+    const r = sv('text', {x, y:y + NR + 11, class:'role'}, g); r.textContent = c.role;
+    const go = () => { ensureAudio(); cancelSeq(); mvNotes(i).forEach(m => tone(m, 0, 1.1)); pM.flash(mvNotes(i), 900); mvPlayed(i); };
+    g.addEventListener('click', go);
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } });
+    return g;
+  });
+  function drawMove(a, b){
+    gHl.textContent = '';
+    if (a < 0 || b < 0 || a === b) return;
+    const mt = moveType(a, b), [x1,y1] = pos(a), [x2,y2] = pos(b);
+    const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), ux = dx/L, uy = dy/L;
+    const sx = x1 + ux*(NR + 4), sy = y1 + uy*(NR + 4), ex = x2 - ux*(NR + 12), ey = y2 - uy*(NR + 12);
+    sv('line', {x1:sx, y1:sy, x2:ex, y2:ey, class:'hl t' + mt.t}, gHl);
+    const tx = x2 - ux*(NR + 2), ty = y2 - uy*(NR + 2), px = -uy, py = ux;
+    sv('polygon', {points:`${tx},${ty} ${ex + px*8},${ey + py*8} ${ex - px*8},${ey - py*8}`, class:'arrow t' + mt.t}, gHl);
+  }
+  function renderMap(){
+    const target = mvJ >= 0 && mvStep < JOURNEYS[mvJ].seq.length ? mvIdx(JOURNEYS[mvJ].seq[mvStep]) : -1;
+    nodeEls.forEach((g,i) => { g.classList.toggle('cur', i === mvCur); g.classList.toggle('target', i === target && i !== mvCur); });
+    edgeEls.forEach(e => e.classList.remove('path'));
+    if (mvJ >= 0){ const sq = JOURNEYS[mvJ].seq.map(mvIdx); for (let k = 1; k < sq.length; k++){ const e = edgeEls.get([sq[k-1], sq[k]].sort().join('-')); if (e) e.classList.add('path'); } }
+    drawMove(mvPrev, mvCur);
+    const marks = new Map();
+    if (target >= 0) mvNotes(target).forEach((m,k) => marks.set(m, ['R','3','5'][k]));
+    pM.marks(marks);
+  }
+  function describeMove(a, b){
+    const box = $('mvMove'); box.classList.remove('t2','t3','t4');
+    if (a < 0 || a === b){
+      $('mvMoveType').textContent = 'Starting chord';
+      $('mvPair').textContent = MV[b].sym;
+      $('mvEmotion').textContent = `${mvTones(b)}. Now play another chord to make a move.`;
+      return;
+    }
+    const mt = moveType(a, b), key = `${MV[a].sym}>${MV[b].sym}`;
+    box.classList.add('t' + mt.t);
+    $('mvMoveType').textContent = `${mt.dir === 'up' ? 'Up' : 'Down'} a ${mt.t === 2 ? '2nd' : mt.t === 3 ? '3rd' : '4th'} · ${mt.loop}`;
+    $('mvPair').textContent = `${MV[a].sym} → ${MV[b].sym}`;
+    const e = $('mvEmotion'); e.textContent = EMO[key] || GENERIC[mt.t + mt.dir];
+    const src = el('span', 'src', EMO[key] ? "Pur Pasteur's reading" : 'General character of this kind of move');
+    e.appendChild(src);
+  }
+  function mvPlayed(i){
+    if (mvJ >= 0){
+      const J = JOURNEYS[mvJ];
+      if (mvStep >= J.seq.length) return;
+      const want = mvIdx(J.seq[mvStep]);
+      if (i !== want){
+        say('mvStatus', `That's ${MV[i].sym}. This journey goes to ${MV[want].sym} next (${mvTones(want)}).`, 'warn');
+        return;
+      }
+      mvPrev = mvStep > 0 ? mvIdx(J.seq[mvStep - 1]) : -1; mvCur = i; mvStep++;
+      describeMove(mvPrev, mvCur);
+      if (mvStep >= J.seq.length){
+        mvDone.add(J.name); try { localStorage.setItem('hb-journeys', JSON.stringify([...mvDone])); } catch(e){}
+        say('mvStatus', `Journey complete: ${J.name}. Try it again with your eyes on the emotions, or pick another.`, 'good');
+      } else say('mvStatus', `${MV[i].sym}, good. Next: ${J.seq[mvStep]}.`, 'good');
+      renderJourneys();
+    } else {
+      if (i === mvCur) return;
+      mvPrev = mvCur; mvCur = i; describeMove(mvPrev, mvCur);
+      say('mvStatus', 'Free play: keep moving. Each line on the map is a different kind of move.', '');
+    }
+    renderMap();
+  }
+  handlers.push(() => {
+    if (!(onScreen('movesTool'))) return;
+    const pcs = new Set(heldMidis().map(m => m % 12));
+    if (pcs.size !== 3) return;
+    const i = MV.findIndex(c => setEq(pcs, chordPcs(c)));
+    if (i < 0){ const id = identify(heldMidis()); say('mvStatus', `${id ? sym(id) : 'That chord'} isn't one of the seven chords of C major. Use only white keys.`, 'warn'); return; }
+    if (i === mvLastHeld) return;
+    mvLastHeld = i; mvPlayed(i);
+  });
+  // forget the last chord once every key is up, so the same chord can be played again later
+  addEventListener('keyup', () => { if (!heldCount.size) mvLastHeld = -1; });
+  document.addEventListener('pointerup', () => { if (!heldCount.size) mvLastHeld = -1; });
+  function renderJourneys(){
+    const w = $('mvJourneys'); w.textContent = '';
+    JOURNEYS.forEach((J,k) => {
+      const b = el('button', 'mv-j' + (k === mvJ ? ' sel' : '') + (mvDone.has(J.name) ? ' done' : '')); b.type = 'button';
+      b.append(el('b', null, J.name), el('span', 'seq', J.seq.join(' → ')), el('span', 'st', mvDone.has(J.name) ? '✓ Done' : `${J.seq.length - 1} moves`));
+      b.title = J.note;
+      b.addEventListener('click', () => startJourney(k));
+      w.appendChild(b);
+    });
+    const now = $('mvNow');
+    if (mvJ < 0){ now.hidden = true; return; }
+    const J = JOURNEYS[mvJ]; now.hidden = false;
+    $('mvJName').textContent = `${J.name}: ${J.note}`;
+    $('mvJCount').textContent = mvStep >= J.seq.length ? 'Complete' : `Chord ${mvStep + 1} of ${J.seq.length}`;
+    $('mvJFill').style.width = (mvStep / J.seq.length * 100) + '%';
+    const st = $('mvSteps'); st.textContent = '';
+    J.seq.forEach((c,k) => {
+      if (k){ const mt = moveType(mvIdx(J.seq[k-1]), mvIdx(c)); st.appendChild(el('span', 'ar', `${mt.dir === 'up' ? '↑' : '↓'}${mt.t === 2 ? '2nd' : mt.t === 3 ? '3rd' : '4th'}`)); }
+      st.appendChild(el('span', 'c' + (k < mvStep ? ' done' : k === mvStep ? ' cur' : ''), c));
+    });
+  }
+  function startJourney(k){
+    cancelSeq(); mvJ = k; mvStep = 0; mvPrev = -1; mvCur = -1; mvLastHeld = -1;
+    const J = JOURNEYS[k];
+    $('mvMove').classList.remove('t2','t3','t4');
+    $('mvMoveType').textContent = J.name; $('mvPair').textContent = J.seq.join(' → '); $('mvEmotion').textContent = J.note + '.';
+    say('mvStatus', `Start on ${J.seq[0]} (${mvTones(mvIdx(J.seq[0]))}). Its notes are marked on the keyboard.`, '');
+    renderJourneys(); renderMap();
+  }
+  $('mvRestart').addEventListener('click', () => { if (mvJ >= 0) startJourney(mvJ); });
+  $('mvFree').addEventListener('click', () => {
+    cancelSeq(); mvJ = -1; mvStep = 0; renderJourneys(); renderMap();
+    say('mvStatus', 'Free play: travel the map however you like. Pick a journey to follow a set path.', '');
+  });
+  $('mvHear').addEventListener('click', () => {
+    if (mvJ < 0) return;
+    ensureAudio(); cancelSeq();
+    const sq = JOURNEYS[mvJ].seq.map(mvIdx), gap = 1.2;
+    sq.forEach((i,k) => {
+      mvNotes(i).forEach(m => tone(m, k*gap, gap*0.92));
+      tone(mvNotes(i)[0] - 12, k*gap, gap*0.92, 0.45);
+      later(k*gap*1000, () => { pM.flash(mvNotes(i), gap*1000 - 80); drawMove(k ? sq[k-1] : -1, i); nodeEls.forEach((g,j) => g.classList.toggle('cur', j === i)); if (k) describeMove(sq[k-1], i); else describeMove(-1, i); });
+    });
+    later(sq.length*gap*1000, () => renderMap());
+  });
+  renderJourneys(); renderMap();
+
   // ---------- Progress ticks ----------
-  const LESSONS = ['notes','scales','chords','harmony','gallery'];
+  const LESSONS = ['notes','scales','chords','harmony','gallery','moves'];
   let done = new Set();
   try { const raw = localStorage.getItem('hb-done'); if (raw) done = new Set(JSON.parse(raw).filter(x => LESSONS.includes(x))); } catch(e){}
   function renderDone(){
@@ -1398,8 +1678,9 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     });
     const n = done.size;
     [...$('progSegs').children].forEach((s, i) => s.classList.toggle('on', i < n));
-    $('progText').textContent = n === 5 ? 'All 5 lessons done' : `${n} of 5 lessons done`;
-    $('finTitle').textContent = n === 5 ? 'You know the basics. Ready for the gates?' : 'Ready for the gates?';
+    const N = LESSONS.length;
+    $('progText').textContent = n === N ? `All ${N} lessons done` : `${n} of ${N} lessons done`;
+    $('finTitle').textContent = n === N ? 'You know the basics. Ready for the gates?' : 'Ready for the gates?';
   }
   document.querySelectorAll('.done-toggle').forEach(t => t.addEventListener('click', () => {
     const id = t.closest('.lesson').id;
