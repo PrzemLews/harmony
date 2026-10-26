@@ -49,6 +49,16 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 main{max-width:1100px;margin:0 auto;padding-block:28px 56px}
 .hero{display:grid;gap:14px;padding-bottom:28px}
+.modnav{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:14px;margin-bottom:4px;border-bottom:2px solid var(--ink)}
+.mod{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 150px;max-width:240px;padding:9px 14px;border:1.5px solid var(--ink);border-radius:10px;background:var(--sheet);color:var(--ink);text-decoration:none;line-height:1.25}
+.mod b{font-size:15px}
+.mod small{font-size:12px;color:var(--ink-soft)}
+a.mod:hover{background:var(--paper-2)}
+.mod.cur{background:var(--ink);color:var(--sheet);box-shadow:3px 3px 0 var(--marigold)}
+.mod.cur small{color:var(--paper-2)}
+.mod.soon{border-style:dashed;border-color:var(--ink-soft);background:transparent;color:var(--ink-soft);cursor:default}
+.mod.game{background:var(--marigold)}
+.mod.game small{color:var(--ink)}
 h1{font-family:var(--f-display);font-weight:400;font-size:clamp(36px,6vw,60px);line-height:1;margin:0;text-wrap:balance}
 .lead{font-size:18px;max-width:62ch;margin:0}
 .toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
@@ -331,7 +341,13 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 
 <main class="gutter">
   <section class="hero">
-    <span class="label">Intro module</span>
+    <nav class="modnav" aria-label="Learning pages">
+      <a class="mod cur" href="learn.html" aria-current="page"><b>Chords</b><small>Notes, scales, chords, harmony</small></a>
+      <span class="mod soon" aria-disabled="true"><b>Melodies</b><small>Coming soon</small></span>
+      <span class="mod soon" aria-disabled="true"><b>Basslines</b><small>Coming soon</small></span>
+      <a class="mod game" href="index.html"><b>Play the game →</b><small>Chord runner</small></a>
+    </nav>
+    <span class="label">Chords page</span>
     <h1>Harmony basics</h1>
     <p class="lead">Before the gates start coming, here is the music theory the game uses. Six short lessons, each with a keyboard you can play: use your MIDI controller, your computer keys, or tap the keys on screen.</p>
     <div class="toc" id="toc">
