@@ -92,6 +92,9 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 .status{margin:0;font-size:15px;padding:8px 12px;border-radius:10px;background:var(--paper-2);min-height:40px}
 .status[data-tone="good"]{background:var(--leaf);color:var(--sheet)}
 .status[data-tone="warn"]{background:var(--coral);color:var(--sheet)}
+.sc-chords{display:flex;flex-direction:column;gap:10px;padding:14px 0 2px;border-top:2px dashed var(--paper-2);border-bottom:2px dashed var(--paper-2)}
+.sc-chords .ccard .sym{font-size:22px}
+.ccard.odd .sym{font-family:var(--f-body);font-size:15px;font-weight:700;letter-spacing:.02em}
 .big{font-family:var(--f-chord);font-weight:700;font-size:30px;line-height:1.15}
 
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -402,6 +405,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <p>A <span class="term">chord</span> is three or more notes played together. The most common chord is the <span class="term">triad</span>: take a scale, play degree 1, skip one, play degree 3, skip one, play degree 5. That is stacking intervals called <b>thirds</b>.</p>
       <p>Two kinds of third make the difference between the two main chords. A <b>major third</b> is 4 half steps, a <b>minor third</b> is 3.</p>
       <p>A <b>major</b> chord is a major third with a minor third on top (4 + 3). It sounds bright. A <b>minor</b> chord swaps them (3 + 4) and sounds darker. Only the middle note moves, by a single half step.</p>
+      <p>You can build chords from any scale the same way, including the world scales from lesson 2: start on a note, skip one, take the next, skip one, take the next. Pick a scale below the Root to see which chords live inside it.</p>
       <p>The notes of a chord can be stacked in any order. These different orders are called <span class="term">inversions</span>: C E G, E G C and G C E are all a C major chord. That's why the game accepts any inversion and any octave.</p>
     </div>
     <div class="tool">
@@ -409,6 +413,14 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
         <label class="field"><span class="label">Root</span><select id="chordRoot"></select></label>
         <div class="field"><span class="label">Type</span><div class="seg" id="chordQ"><button type="button" data-v="maj" aria-pressed="true">Major</button><button type="button" data-v="min" aria-pressed="false">Minor</button></div></div>
         <button class="btn ghost" type="button" id="chordHear">Hear it</button>
+      </div>
+      <div class="sc-chords">
+        <div class="controls">
+          <label class="field"><span class="label">Chords from a scale</span><select id="chScale"></select></label>
+          <button class="pill" type="button" id="chScaleHear">Hear them all</button>
+        </div>
+        <p class="help" id="chScaleInfo"></p>
+        <div class="cards" id="chScaleCards"></div>
       </div>
       <div class="controls">
         <div class="field"><span class="label">Chord</span><span class="big" id="chordName">C major</span></div>
@@ -1173,6 +1185,71 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     later(700, () => pC.flash(v, 1000));
   });
   renderChord();
+  // ----- chords built from any scale (stack every other scale note) -----
+  $('chScale').innerHTML = $('scaleType').innerHTML;
+  $('chScale').value = 'major';
+  let chScaleSel = -1;
+  function scaleTriads(){
+    const type = $('chScale').value, S = SCALES[type], n = S.iv.length, names = spellScale(ch.root, type), deg = scaleDegrees(type);
+    const pcs = S.iv.map(v => (ch.root + v) % 12);
+    return S.iv.map((_, i) => {
+      const idx = [i, (i + 2) % n, (i + 4) % n];
+      const v = [60 + pcs[idx[0]]];
+      for (let k = 1; k < 3; k++){ let m = v[k-1] + 1; while (m % 12 !== pcs[idx[k]]) m++; v.push(m); }
+      const fitted = fit(v), id = identify(fitted);
+      const tones = idx.map(j => names[j]);
+      let c = null, label, slash = false;
+      if (id){
+        c = {root:id.root, q:id.q, name:names[pcs.indexOf(id.root)]};
+        slash = id.root !== pcs[idx[0]];
+        label = sym(c) + (slash ? '/' + tones[0] : '');
+      } else label = tones.join(' ');
+      return {i, idx, v:fitted, tones, degs:idx.map(j => deg[j]), c, label, slash};
+    });
+  }
+  function renderScaleChords(){
+    const type = $('chScale').value, S = SCALES[type], world = !['major','minor'].includes(type);
+    const sname = `${S.names[ch.root]} ${S.w}`;
+    $('chScaleInfo').textContent = world
+      ? `${sname}: ${spellScale(ch.root, type).join(' ')}. ${S.info} Stacking every other note is a Western way to find chords in it. Many of these traditions are mostly melodic, but film, jazz and electronic producers often harmonize these scales this way.`
+      : `${sname}: ${spellScale(ch.root, type).join(' ')}. Stack every other note and you get the ${S.iv.length} chords of the key.`;
+    const w = $('chScaleCards'); w.textContent = '';
+    scaleTriads().forEach(t => {
+      const b = el('button', 'ccard' + (t.c ? '' : ' odd') + (t.i === chScaleSel ? ' sel' : '')); b.type = 'button';
+      b.append(el('span', 'rn', `on ${t.degs[0]}`), el('span', 'sym', t.label), el('span', 'fn', t.c ? t.tones.join(' · ') : 'no common name'));
+      b.addEventListener('click', () => pickScaleChord(t.i, true));
+      w.appendChild(b);
+    });
+  }
+  function pickScaleChord(i, sound){
+    const type = $('chScale').value, S = SCALES[type], t = scaleTriads()[i];
+    chScaleSel = i;
+    $('chScaleCards').querySelectorAll('.ccard').forEach((b,k) => b.classList.toggle('sel', k === i));
+    const sname = `${S.names[ch.root]} ${S.w}`;
+    $('chordName').textContent = t.c ? `${longName(t.c)}${t.slash ? ` over ${t.tones[0]}` : ''} (${t.label})` : t.tones.join(' · ');
+    const d1 = t.v[1] - t.v[0], d2 = t.v[2] - t.v[1];
+    $('chordBuild').textContent = `Notes ${t.degs.join(', ')} of ${sname}: ${t.tones.join(' · ')}. ` + (t.c
+      ? `Together they make ${longName(t.c)}${t.slash ? `, with ${t.tones[0]} at the bottom (an inversion)` : ''}.`
+      : `This stack has no common Western chord name: ${t.tones[0]} → ${t.tones[1]} is ${d1} half steps (${IVNAMES[d1]}), ${t.tones[1]} → ${t.tones[2]} is ${d2} (${IVNAMES[d2]}). Its colour comes straight from the scale.`);
+    const marks = new Map(); t.v.forEach((m,k) => marks.set(m, t.degs[k])); pC.marks(marks);
+    const names = spellScale(ch.root, type), cm = spellMap(names, S.iv.map(v => (ch.root + v) % 12)); pC.names(m => cm.get(m % 12));
+    if (sound){
+      ensureAudio(); cancelSeq();
+      t.v.forEach((m,k) => tone(m, k*0.15, 0.3)); t.v.forEach(m => tone(m, 0.55, 1.1));
+      later(550, () => pC.flash(t.v, 1000));
+    }
+  }
+  $('chScale').addEventListener('change', () => { chScaleSel = -1; renderScaleChords(); renderChord(); });
+  $('chScaleHear').addEventListener('click', () => {
+    ensureAudio(); cancelSeq();
+    scaleTriads().forEach((t,k) => {
+      t.v.forEach(m => tone(m, k*0.9, 0.82));
+      later(k*900, () => pickScaleChord(t.i, false));
+    });
+  });
+  $('chordRoot').addEventListener('change', () => { chScaleSel = -1; renderScaleChords(); });
+  onSeg($('chordQ'), () => { chScaleSel = -1; renderScaleChords(); });
+  renderScaleChords();
   // ---------- Chord workout: rounds of steps with progress ----------
   const ROUNDS = [
     {name:'Major chords', tip:'Bright and stable.', steps:[{root:0,q:'maj'},{root:5,q:'maj'},{root:7,q:'maj'}]},
