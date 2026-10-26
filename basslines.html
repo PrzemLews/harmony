@@ -9,7 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&family=Kalam:wght@700&display=swap">
 <style>
-/* Basslines learning page — shell only. Shares the look of learn.html (Chords). */
+/* Basslines: seven numbered lessons, each pairing short prose with a playable step-grid "tool".
+   Same manuscript look as learn.html (Chords). One shared transport plays one loop at a time. */
 :root{
   --paper:#E6EBE3;
   --paper-2:#D7DFD3;
@@ -29,12 +30,23 @@ html,body{background:var(--paper);color:var(--ink)}
 body{margin:0;font-family:var(--f-body);font-size:16px;line-height:1.6}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
 .gutter{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+[hidden]{display:none!important}
 
 /* top bar */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:2px solid var(--ink)}
 .top-inner{max-width:1100px;margin:0 auto;padding-block:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 20px}
 .mark-name{font-family:var(--f-display);font-size:22px;line-height:1;text-decoration:none;color:var(--ink)}
+.live{display:flex;align-items:baseline;gap:8px 16px;flex-wrap:wrap;min-width:0;flex:1 1 280px}
+.live-notes{font-weight:700;font-variant-numeric:tabular-nums;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft)}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pill{font:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer;max-width:280px;text-decoration:none}
+.pill span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill[aria-pressed="true"]{background:var(--coral);border-color:var(--coral);color:var(--sheet)}
+.dot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--ink-soft);transition:transform .08s}
+.pill[data-state="on"] .dot{background:var(--leaf)}
+.pill[data-state="off"] .dot{background:var(--coral)}
+.dot.blink{transform:scale(1.7);background:var(--marigold)!important}
 
 main{max-width:1100px;margin:0 auto;padding-block:28px 56px}
 .hero{display:grid;gap:14px;padding-bottom:28px}
@@ -47,7 +59,176 @@ a.mod:hover{background:var(--paper-2)}
 .mod.cur small{color:var(--paper-2)}
 .mod.soon{border-style:dashed;border-color:var(--ink-soft);background:transparent;color:var(--ink-soft);cursor:default}
 h1{font-family:var(--f-display);font-weight:400;font-size:clamp(36px,6vw,60px);line-height:1;margin:0;text-wrap:balance}
-a:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
+.lead{font-size:18px;max-width:62ch;margin:0}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.toc button{font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer}
+.toc b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--marigold);border:1.5px solid var(--ink);font-size:12px}
+.toc button.done b{background:var(--leaf);color:var(--sheet);border-color:var(--leaf)}
+.progress{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px;font-weight:600}
+.segs{display:flex;gap:4px}
+.segs i{width:34px;height:8px;border-radius:4px;background:var(--paper-2);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.segs i.on{background:var(--leaf);box-shadow:none}
+.done-toggle{margin-left:auto;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer;white-space:nowrap}
+.done-toggle .box{flex:none;width:18px;height:18px;border-radius:5px;border:2px solid var(--ink);background:var(--sheet);position:relative}
+.done-toggle[aria-pressed="true"]{background:var(--leaf);border-color:var(--leaf);color:var(--sheet)}
+.done-toggle[aria-pressed="true"] .box{border-color:var(--sheet);background:var(--sheet)}
+.done-toggle[aria-pressed="true"] .box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;border:solid var(--leaf);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.lesson.is-done .num{background:var(--leaf);color:var(--sheet)}
+
+.lesson{display:grid;gap:18px;padding-block:32px;border-top:2px solid var(--ink);scroll-margin-top:90px}
+.lesson-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+.num{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--marigold);border:2px solid var(--ink);font-family:var(--f-display);font-size:22px}
+h2{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,3.6vw,34px);line-height:1.1;margin:0;text-wrap:balance}
+h3{font-size:15px;margin:0}
+.prose{max-width:68ch}
+.prose p{margin:0 0 .8em}
+.prose p:last-child{margin-bottom:0}
+.prose ul{margin:0 0 .8em;padding-left:1.2em}
+.prose li{margin-bottom:.3em}
+.term{font-weight:700;background:linear-gradient(transparent 62%, rgba(242,169,0,.45) 62%)}
+
+.tool{background:var(--sheet);border:2px solid var(--ink);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 18px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+select{font:inherit;font-size:15px;font-weight:600;padding:6px 10px;border:1.5px solid var(--ink);border-radius:8px;background:var(--sheet);color:var(--ink)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:inherit;font-size:14px;font-weight:600;padding:6px 12px;border:1.5px solid var(--ink);border-radius:8px;background:var(--sheet);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.btn{font-family:var(--f-display);font-size:17px;font-weight:400;letter-spacing:.02em;padding:7px 14px;border-radius:10px;border:2px solid var(--ink);background:var(--marigold);color:var(--ink);box-shadow:3px 3px 0 var(--ink);cursor:pointer;transition:transform .08s,box-shadow .08s;text-decoration:none;display:inline-block}
+.btn.ghost{background:var(--sheet)}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+.btn.play{min-width:104px}
+.btn.play[aria-pressed="true"]{background:var(--leaf);color:var(--sheet)}
+button:focus-visible,select:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
+.status{margin:0;font-size:15px;padding:8px 12px;border-radius:10px;background:var(--paper-2);min-height:40px}
+.status[data-tone="good"]{background:var(--leaf);color:var(--sheet)}
+.status[data-tone="warn"]{background:var(--coral);color:var(--sheet)}
+.help{font-size:13px;color:var(--ink-soft);margin:0}
+kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;border:1.5px solid var(--ink-soft);border-bottom-width:3px;border-radius:5px;color:var(--ink);background:var(--sheet)}
+input[type=range]{accent-color:var(--ink);width:150px}
+.range-val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.transport{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 18px;padding-bottom:12px;border-bottom:2px dashed var(--paper-2)}
+
+/* step grid ("roll") */
+.roll-wrap{overflow-x:auto;padding-bottom:4px}
+.roll{--n:16;display:flex;flex-direction:column;gap:3px;min-width:560px;user-select:none;-webkit-user-select:none}
+.roll.long{min-width:960px}
+.rrow{display:grid;grid-template-columns:74px minmax(0,1fr);align-items:stretch;gap:6px}
+.rl{font-size:12px;font-weight:700;color:var(--ink-soft);text-align:right;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 4px;border-radius:6px}
+.rl.lit{background:var(--marigold);color:var(--ink)}
+.lane{position:relative;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));height:34px;border:1.5px solid var(--ink);border-radius:8px;background:var(--sheet);overflow:hidden}
+.lane.head{height:22px;border:0;background:transparent}
+.lane.kick{height:22px;background:var(--paper)}
+.hc{display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--ink-soft)}
+.hc.p1{font-weight:700;color:var(--ink)}
+.cell,.kc{border:0;margin:0;padding:0;background:transparent;border-left:1px solid var(--paper-2);cursor:pointer;min-width:0}
+.kc{cursor:default;display:grid;place-items:center}
+.cell:first-child,.kc:first-child{border-left:0}
+.cell.bt,.kc.bt{border-left:1.5px solid #B8C2B3}
+.cell.bar,.kc.bar{border-left:2px solid var(--ink)}
+.cell.alt,.kc.alt{background:rgba(215,223,211,.45)}
+.cell:hover{background:rgba(242,169,0,.18)}
+.cell.ph,.kc.ph,.hc.ph{background:rgba(242,169,0,.4)}
+.hc.ph{border-radius:4px}
+.kd{width:11px;height:11px;border-radius:50%;background:var(--ink)}
+span.cell{cursor:default}
+span.cell:hover{background:transparent}
+span.cell.ph:hover{background:rgba(242,169,0,.4)}
+.nb{position:absolute;top:4px;bottom:4px;border:0;border-radius:6px;background:var(--marigold);box-shadow:inset 0 0 0 1.5px var(--ink);padding:0;cursor:pointer;z-index:2}
+.nb.onk{background:var(--ink)}
+.nb.l2{background:var(--leaf);box-shadow:none;top:9px;bottom:9px;opacity:.9}
+.nb.ghost{background:transparent;box-shadow:inset 0 0 0 2px var(--ink-soft);border:0;z-index:1}
+.nb.ghost.onk{background:transparent}
+span.nb{cursor:default}
+.nb.sound{box-shadow:0 0 0 3px var(--leaf),inset 0 0 0 1.5px var(--ink)}
+.nb.l2.sound{box-shadow:0 0 0 3px var(--marigold)}
+.nb.ghost.sound{box-shadow:inset 0 0 0 2px var(--ink),0 0 0 3px var(--marigold)}
+.hm{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:2px solid var(--sheet);z-index:3;pointer-events:none}
+.hm.on{background:var(--leaf)}
+.hm.near{background:var(--marigold)}
+.hm.bad{background:var(--coral)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--ink-soft)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:22px;height:12px;border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--ink)}
+.legend i.onk{background:var(--ink)}
+.legend i.offk{background:var(--marigold)}
+.legend i.l2{background:var(--leaf);box-shadow:none}
+.legend i.ghost{background:transparent;box-shadow:inset 0 0 0 2px var(--ink-soft)}
+.legend i.hit{width:12px;border-radius:50%;box-shadow:none}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.ccard{font:inherit;color:var(--ink);text-align:left;border:1.5px solid var(--ink);border-radius:10px;background:var(--sheet);padding:9px 12px;display:flex;flex-direction:column;gap:1px;cursor:pointer;min-width:0}
+.ccard .rn{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--ink-soft)}
+.ccard .sym{font-family:var(--f-chord);font-weight:700;font-size:22px;line-height:1.15}
+.ccard .desc{font-size:13px;color:var(--ink-soft);line-height:1.4}
+.ccard.sel{background:var(--marigold)}
+.ccard.sel .rn,.ccard.sel .desc{color:var(--ink)}
+
+.info{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border:2px solid var(--ink);border-radius:12px;background:var(--paper)}
+.info .big{font-family:var(--f-chord);font-weight:700;font-size:30px;line-height:1.15}
+.info p{margin:0}
+.info ul{margin:4px 0 0;padding-left:1.2em}
+.info .meta{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:3px 10px;border:1.5px solid var(--ink);border-radius:999px;font-size:13px;font-weight:600;background:var(--sheet);white-space:nowrap}
+.chip.cur{background:var(--marigold)}
+.chip.done{background:var(--leaf);color:var(--sheet);border-color:var(--leaf)}
+
+/* groove checklist */
+.checks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.checks li{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1.5px solid var(--paper-2);border-radius:10px;font-size:14px;line-height:1.35}
+.checks li .bx{flex:none;width:20px;height:20px;border-radius:6px;border:2px solid var(--ink);background:var(--sheet);position:relative;margin-top:1px}
+.checks li.ok{border-color:var(--leaf)}
+.checks li.ok .bx{background:var(--leaf);border-color:var(--leaf)}
+.checks li.ok .bx::after{content:"";position:absolute;left:5px;top:1px;width:5px;height:10px;border:solid var(--sheet);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.checks small{display:block;color:var(--ink-soft);font-size:12px}
+
+/* layer stack */
+.stack{display:flex;flex-direction:column;gap:6px}
+.layer{font:inherit;color:var(--ink);text-align:left;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:4px 12px;padding:10px 12px;border:1.5px dashed var(--ink-soft);border-radius:10px;background:transparent;cursor:pointer}
+.layer b{font-size:15px}
+.layer small{display:block;font-size:12px;color:var(--ink-soft);line-height:1.35}
+.layer .sw{width:38px;height:22px;border-radius:11px;background:var(--paper-2);box-shadow:inset 0 0 0 1.5px var(--ink);position:relative}
+.layer .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--sheet);box-shadow:0 0 0 1.5px var(--ink);transition:left .12s}
+.layer .band{font-size:12px;font-weight:700;color:var(--ink-soft);white-space:nowrap}
+.layer[aria-pressed="true"]{border-style:solid;border-color:var(--ink);background:var(--sheet)}
+.layer[aria-pressed="true"] .sw{background:var(--leaf);box-shadow:none}
+.layer[aria-pressed="true"] .sw::after{left:19px;box-shadow:none}
+.layer.l-sub[aria-pressed="true"]{box-shadow:inset 6px 0 0 var(--ink)}
+.layer.l-mid[aria-pressed="true"]{box-shadow:inset 6px 0 0 var(--marigold)}
+.layer.l-top[aria-pressed="true"]{box-shadow:inset 6px 0 0 var(--leaf)}
+.knobs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 18px}
+.knobs .field label{display:flex;justify-content:space-between;gap:8px}
+.knobs input[type=range]{width:100%}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px 24px;align-items:start}
+
+/* trainer */
+.levels{display:flex;flex-wrap:wrap;gap:6px}
+.levels button{font:inherit;font-size:13px;font-weight:600;padding:5px 12px;border:1.5px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}
+.levels button[aria-pressed="true"]{background:var(--marigold)}
+.levels button.done{background:var(--leaf);color:var(--sheet);border-color:var(--leaf)}
+.levels button.done[aria-pressed="true"]{box-shadow:0 0 0 3px var(--marigold)}
+.score{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+.streak{display:flex;gap:6px}
+.streak i{width:16px;height:16px;border-radius:50%;background:var(--paper-2);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.streak i.on{background:var(--leaf);box-shadow:none}
+.pads{display:flex;flex-wrap:wrap;gap:8px}
+.pad{font:inherit;font-family:var(--f-chord);font-weight:700;font-size:22px;min-width:72px;padding:12px 16px;border-radius:12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer;touch-action:manipulation;box-shadow:3px 3px 0 var(--ink)}
+.pad small{display:block;font-family:var(--f-body);font-size:11px;font-weight:700;color:var(--ink-soft)}
+.pad.hold{background:var(--marigold);transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+
+.finale{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding:22px;border:2px solid var(--ink);border-radius:14px;background:var(--marigold);box-shadow:6px 6px 0 var(--ink);margin-top:8px}
+.finale h2{font-size:28px}
+.finale p{margin:4px 0 0;max-width:56ch}
+.finale .btns{display:flex;flex-wrap:wrap;gap:10px}
+.finale .btn{background:var(--sheet)}
+
+@media (max-width:820px){
+  .top{position:static}
+  .lesson{scroll-margin-top:12px}
+  .two{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){.btn,.dot,.layer .sw::after{transition:none}}
 </style>
 </head>
 <body>
@@ -55,6 +236,14 @@ a:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
 <header class="top">
   <div class="top-inner gutter">
     <a class="mark-name" href="index.html">Harmony</a>
+    <div class="live" aria-live="polite">
+      <span class="label">You're playing</span>
+      <span class="live-notes" id="liveNotes">nothing yet</span>
+    </div>
+    <div class="top-actions">
+      <button class="pill" id="midiPill" type="button" data-state="idle"><span class="dot" id="midiDot"></span><span id="midiText">MIDI: press to connect</span></button>
+      <button class="pill" id="muteBtn" type="button" aria-pressed="false"><span aria-hidden="true">♪</span><span id="muteText">Sound: on</span></button>
+    </div>
   </div>
 </header>
 
@@ -67,8 +256,1063 @@ a:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
     </nav>
     <span class="label">Basslines page</span>
     <h1>Basslines</h1>
+    <p class="lead">The bassline decides whether people move. Seven short lessons on how electronic basslines work, from the 16-step grid to layered sound, each with a loop you can play and change. Use your MIDI controller, your computer keys, or click the grid.</p>
+    <div class="toc" id="toc">
+      <button type="button" data-go="grid"><b>1</b>The grid</button>
+      <button type="button" data-go="families"><b>2</b>Note lengths</button>
+      <button type="button" data-go="groove"><b>3</b>Groove</button>
+      <button type="button" data-go="pitch"><b>4</b>Notes that move</button>
+      <button type="button" data-go="layers"><b>5</b>Layers and sound</button>
+      <button type="button" data-go="gallery"><b>6</b>Pattern gallery</button>
+      <button type="button" data-go="play"><b>7</b>Play it yourself</button>
+    </div>
+    <div class="progress" aria-live="polite">
+      <div class="segs" id="progSegs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <span id="progText">0 of 7 lessons done</span>
+    </div>
+    <p class="help">Computer keys: <kbd>A</kbd> to <kbd>;</kbd> play the white keys, <kbd>W</kbd> <kbd>E</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>O</kbd> <kbd>P</kbd> the black keys, <kbd>Z</kbd> / <kbd>X</kbd> shift the octave. Everything you play sounds two octaves down, in bass range.</p>
   </section>
+
+  <!-- 1 -->
+  <section class="lesson" id="grid" data-lesson="grid">
+    <div class="lesson-head"><span class="num">1</span><h2>The 16-step grid</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+    <div class="prose">
+      <p>A bar of dance music has four beats, and the kick usually lands on every one of them. Split each beat into four and you get the <span class="term">16-step grid</span> that drum machines and DAWs use: each step is a 1/16 note.</p>
+      <p>Count the four steps in every beat as <span class="term">positions</span> 1, 2, 3, 4. Position 1 sits right on the kick. Position 3 is the <span class="term">off-beat</span>, halfway between two kicks, where the open hi-hat usually goes. Positions 2 and 4 are the in-between 16ths.</p>
+      <p>Where your bass notes sit against the kick decides most of how a bassline feels. Pick a preset, press Play, then click squares to add or remove notes.</p>
+    </div>
+    <div class="tool">
+      <div class="transport">
+        <button class="btn play" id="gPlay" type="button" aria-pressed="false">▶ Play</button>
+        <div class="field"><span class="label">Tempo</span><select id="gTempo" aria-label="Tempo"></select></div>
+        <div class="field"><span class="label">Drums</span><div class="seg" id="gDrums"><button type="button" data-v="kick" aria-pressed="true">Kick</button><button type="button" data-v="hats" aria-pressed="false">Kick + hats</button></div></div>
+      </div>
+      <div class="field"><span class="label">Presets</span>
+        <div class="seg" id="gPreset">
+          <button type="button" data-v="kick" aria-pressed="true">On the kick</button>
+          <button type="button" data-v="off" aria-pressed="false">Off-beat</button>
+          <button type="button" data-v="p24" aria-pressed="false">Positions 2 and 4</button>
+          <button type="button" data-v="all" aria-pressed="false">Every 16th</button>
+          <button type="button" data-v="clear" aria-pressed="false">Clear</button>
+        </div>
+      </div>
+      <div class="roll-wrap"><div class="roll" id="gRoll"></div></div>
+      <div class="legend"><span><i class="onk"></i>On the kick (position 1)</span><span><i class="offk"></i>Off the kick (positions 2, 3, 4)</span></div>
+      <p class="status" id="gStatus" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="lesson" id="families" data-lesson="families">
+    <div class="lesson-head"><span class="num">2</span><h2>Note lengths and rhythm families</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+    <div class="prose">
+      <p>Note lengths are fractions of one bar. A <b>1/16</b> fills one step, a <b>1/8</b> two steps, a <b>1/4</b> one whole beat (four steps), and <b>1/1</b> the whole bar. A <span class="term">dotted</span> note is half again as long: a dotted 1/8 lasts three steps.</p>
+      <p>Most electronic basslines start from one of five <span class="term">rhythm families</span>. Picking the family is the first decision for each section of a track; switching family between sections (a dotted line in the breakdown, a straight one in the drop) is the cheapest way to add contrast.</p>
+      <p>Each family below loops over a simple four-chord progression so you hear it in a musical setting. Try the sidechain switch on the straight 1/8.</p>
+    </div>
+    <div class="tool">
+      <div class="transport">
+        <button class="btn play" id="fPlay" type="button" aria-pressed="false">▶ Play</button>
+        <div class="field"><span class="label">Tempo</span><select id="fTempo" aria-label="Tempo"></select></div>
+        <div class="field"><span class="label">Chord changes</span><div class="seg" id="fFollow"><button type="button" data-v="on" aria-pressed="true">Follow chords</button><button type="button" data-v="off" aria-pressed="false">One note</button></div></div>
+        <div class="field"><span class="label">Sidechain</span><div class="seg" id="fSide"><button type="button" data-v="on" aria-pressed="true">On</button><button type="button" data-v="off" aria-pressed="false">Off</button></div></div>
+      </div>
+      <div class="field"><span class="label">Family</span>
+        <div class="seg" id="fFam">
+          <button type="button" data-v="sustained" aria-pressed="false">Sustained</button>
+          <button type="button" data-v="eighth" aria-pressed="true">Straight 1/8</button>
+          <button type="button" data-v="sixteenth" aria-pressed="false">Straight 1/16</button>
+          <button type="button" data-v="dotted" aria-pressed="false">Dotted 1/8</button>
+          <button type="button" data-v="combo" aria-pressed="false">Combo</button>
+        </div>
+      </div>
+      <div class="roll-wrap"><div class="roll" id="fRoll"></div></div>
+      <div class="info" id="fInfo" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="lesson" id="groove" data-lesson="groove">
+    <div class="lesson-head"><span class="num">3</span><h2>Groove</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+    <div class="prose">
+      <p>A bassline grooves when it avoids the obvious. Four habits do most of the work:</p>
+      <ul>
+        <li><b>Move notes off the kick.</b> Everything on position 1 sounds solid but flat.</li>
+        <li><b>Mix note lengths.</b> Short and long notes in one loop sound played, not programmed.</li>
+        <li><b>Leave rests.</b> Gaps give the bass rhythm and leave room for the percussion.</li>
+        <li><b>Nudge it off the grid.</b> <span class="term">Swing</span> delays every second 16th a little, which adds a human lilt.</li>
+      </ul>
+      <p>The loop below starts stiff. Pick a note length, click the grid, and tick off all four.</p>
+    </div>
+    <div class="tool">
+      <div class="transport">
+        <button class="btn play" id="vPlay" type="button" aria-pressed="false">▶ Play</button>
+        <div class="field"><span class="label">Tempo</span><select id="vTempo" aria-label="Tempo"></select></div>
+        <div class="field"><label class="label" for="vSwing">Swing <span class="range-val" id="vSwingVal">0%</span></label><input type="range" id="vSwing" min="0" max="60" step="1" value="0"></div>
+      </div>
+      <div class="controls">
+        <div class="field"><span class="label">New note length</span>
+          <div class="seg" id="vLen"><button type="button" data-v="1" aria-pressed="false">1/16</button><button type="button" data-v="2" aria-pressed="true">1/8</button><button type="button" data-v="3" aria-pressed="false">Dotted 1/8</button><button type="button" data-v="4" aria-pressed="false">1/4</button></div>
+        </div>
+        <div class="field"><span class="label">Start from</span>
+          <div class="seg" id="vStart"><button type="button" data-v="stiff" aria-pressed="false">Stiff loop</button><button type="button" data-v="clear" aria-pressed="false">Empty</button><button type="button" data-v="example" aria-pressed="false">Show me one</button></div>
+        </div>
+      </div>
+      <div class="roll-wrap"><div class="roll" id="vRoll"></div></div>
+      <ul class="checks" id="vChecks"></ul>
+      <p class="status" id="vStatus" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="lesson" id="pitch" data-lesson="pitch">
+    <div class="lesson-head"><span class="num">4</span><h2>Notes that move</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+    <div class="prose">
+      <p>Once the rhythm grooves, pitch makes the bass dance. The <span class="term">scale</span> sets the mood, and a few intervals around the root do the moving:</p>
+      <ul>
+        <li><b>5th</b>: the safest move away from the root. It never clashes.</li>
+        <li><b>♭7</b>: adds a bouncy, house-like swing.</li>
+        <li><b>♭3</b>: colour, and a more melodic line.</li>
+        <li><b>♭2</b> (Phrygian): one half step above the root. This is where dark tech house and afro basslines get their tension.</li>
+        <li><b>8</b>, the octave: movement without changing the harmony.</li>
+      </ul>
+      <p>Rows are scale degrees, numbered from the root. Switch the scale while the loop plays and listen to the same pattern change mood. Play along on your keyboard: the row you hit lights up.</p>
+    </div>
+    <div class="tool">
+      <div class="transport">
+        <button class="btn play" id="pPlay" type="button" aria-pressed="false">▶ Play</button>
+        <div class="field"><span class="label">Tempo</span><select id="pTempo" aria-label="Tempo"></select></div>
+        <div class="field"><label class="label" for="pRoot">Root</label><select id="pRoot"></select></div>
+        <div class="field"><span class="label">Scale</span>
+          <div class="seg" id="pScale"><button type="button" data-v="minor" aria-pressed="true">Minor</button><button type="button" data-v="phrygian" aria-pressed="false">Phrygian</button><button type="button" data-v="dorian" aria-pressed="false">Dorian</button><button type="button" data-v="major" aria-pressed="false">Major</button></div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="field"><span class="label">Try a move</span>
+          <div class="seg" id="pPreset">
+            <button type="button" data-v="one" aria-pressed="false">One note</button>
+            <button type="button" data-v="fifth" aria-pressed="false">Root and 5th</button>
+            <button type="button" data-v="oct" aria-pressed="false">Octave jumps</button>
+            <button type="button" data-v="seventh" aria-pressed="true">Root, 5th, ♭7</button>
+            <button type="button" data-v="dark" aria-pressed="false">Dark ♭2</button>
+          </div>
+        </div>
+        <div class="field"><span class="label">New note length</span>
+          <div class="seg" id="pLen"><button type="button" data-v="1" aria-pressed="false">1/16</button><button type="button" data-v="2" aria-pressed="true">1/8</button><button type="button" data-v="3" aria-pressed="false">Dotted 1/8</button><button type="button" data-v="4" aria-pressed="false">1/4</button></div>
+        </div>
+      </div>
+      <div class="roll-wrap"><div class="roll" id="pRoll"></div></div>
+      <p class="status" id="pStatus" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="lesson" id="layers" data-lesson="layers">
+    <div class="lesson-head"><span class="num">5</span><h2>Layers and sound</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+    <div class="prose">
+      <p>A modern electronic bass is rarely one sound. It is a stack of <span class="term">layers</span>, each with one job, acting as one instrument:</p>
+      <ul>
+        <li><b>Sub</b>: a near-pure sine below about 120 Hz. You feel it on a club system more than you hear it.</li>
+        <li><b>Mid-bass</b>: a saw wave with its lows cut. This is the groove you hear on any speaker, phones included.</li>
+        <li><b>Fifth on top</b>: an extra saw seven half steps up for bite, without new harmony.</li>
+      </ul>
+      <p>Three controls shape the mid layer. <span class="term">Pluck</span> is a filter envelope: it opens bright on each note and closes fast. <span class="term">Drive</span> adds distortion and harmonics. <span class="term">Resonance</span> makes the filter squelch, the acid sound. Last, <span class="term">sidechain</span> ducks the bass every time the kick hits, so the two don't fight and the bass pumps.</p>
+    </div>
+    <div class="tool">
+      <div class="transport">
+        <button class="btn play" id="lPlay" type="button" aria-pressed="false">▶ Play</button>
+        <div class="field"><span class="label">Tempo</span><select id="lTempo" aria-label="Tempo"></select></div>
+        <div class="field"><span class="label">Pattern</span><div class="seg" id="lPat"><button type="button" data-v="groovy" aria-pressed="true">Groovy</button><button type="button" data-v="classic" aria-pressed="false">Tech house</button><button type="button" data-v="rolling" aria-pressed="false">Rolling</button></div></div>
+      </div>
+      <div class="two">
+        <div class="stack" id="lStack">
+          <button class="layer l-top" type="button" data-k="top" aria-pressed="false"><span class="sw" aria-hidden="true"></span><span><b>Fifth on top</b><small>Extra bite, seven half steps up</small></span><span class="band">+7</span></button>
+          <button class="layer l-mid" type="button" data-k="mid" aria-pressed="true"><span class="sw" aria-hidden="true"></span><span><b>Mid-bass</b><small>Saw wave, lows cut. The groove you hear</small></span><span class="band">120 Hz +</span></button>
+          <button class="layer l-sub" type="button" data-k="sub" aria-pressed="true"><span class="sw" aria-hidden="true"></span><span><b>Sub</b><small>Sine wave. The weight you feel</small></span><span class="band">&lt; 120 Hz</span></button>
+        </div>
+        <div class="knobs">
+          <div class="field"><label class="label" for="kPluck">Pluck <span class="range-val" id="kPluckVal"></span></label><input type="range" id="kPluck" min="0" max="100" value="50"></div>
+          <div class="field"><label class="label" for="kDrive">Drive <span class="range-val" id="kDriveVal"></span></label><input type="range" id="kDrive" min="0" max="100" value="25"></div>
+          <div class="field"><label class="label" for="kRes">Resonance <span class="range-val" id="kResVal"></span></label><input type="range" id="kRes" min="0" max="100" value="15"></div>
+          <div class="field"><label class="label" for="kSide">Sidechain <span class="range-val" id="kSideVal"></span></label><input type="range" id="kSide" min="0" max="100" value="55"></div>
+        </div>
+      </div>
+      <div class="roll-wrap"><div class="roll" id="lRoll"></div></div>
+      <p class="status" id="lStatus" aria-live="polite"></p>
+      <p class="help">On laptop speakers the sub layer is nearly silent. Headphones show the difference best.</p>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="lesson" id="gallery" data-lesson="gallery">
+    <div class="lesson-head"><span class="num">6</span><h2>Pattern gallery</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+    <div class="prose">
+      <p>Seventeen bassline styles from house, tech house, melodic and progressive house, indie dance and afro tech. Each card plays a loop with its own drums, scale and sound, and says what makes it work. Artist names describe a style; the loops are original.</p>
+      <p>Found one you like? Send it to lesson 4 to rework the notes yourself.</p>
+    </div>
+    <div class="tool">
+      <div class="cards" id="galCards"></div>
+      <div class="transport">
+        <button class="btn play" id="galPlay" type="button" aria-pressed="false">▶ Play</button>
+        <button class="btn ghost" id="galEdit" type="button">Edit in lesson 4</button>
+      </div>
+      <div class="info" id="galInfo" aria-live="polite"></div>
+      <div class="roll-wrap"><div class="roll" id="galRoll"></div></div>
+      <div class="legend"><span><i class="onk"></i>Main bass on the kick</span><span><i class="offk"></i>Main bass off the kick</span><span><i class="l2"></i>Second layer</span></div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="lesson" id="play" data-lesson="play">
+    <div class="lesson-head"><span class="num">7</span><h2>Play it yourself</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+    <div class="prose">
+      <p>Time to play basslines in time with the drums. Press Start, listen for one bar, then play the outlined notes on your MIDI keyboard, your computer keys or the pads below. Each dot shows when you played: <b>green</b> is on time, <b>yellow</b> is a little early or late, <b>red</b> is a wrong or extra note.</p>
+      <p>Play two clean bars in a row to clear a level. The first four levels are about rhythm, so any note counts; the last one checks your notes too. Turn the guide bass off once you know the line.</p>
+    </div>
+    <div class="tool">
+      <div class="field"><span class="label">Level</span><div class="levels" id="tLevels"></div></div>
+      <div class="transport">
+        <button class="btn play" id="tPlay" type="button" aria-pressed="false">▶ Start</button>
+        <div class="field"><span class="label">Tempo</span><div class="seg" id="tTempo"><button type="button" data-v="100" aria-pressed="true">Slow</button><button type="button" data-v="112" aria-pressed="false">Medium</button><button type="button" data-v="124" aria-pressed="false">Club</button></div></div>
+        <div class="field"><span class="label">Guide bass</span><div class="seg" id="tGuide"><button type="button" data-v="on" aria-pressed="true">On</button><button type="button" data-v="off" aria-pressed="false">Off</button></div></div>
+      </div>
+      <div class="info" id="tInfo"></div>
+      <div class="roll-wrap"><div class="roll" id="tRoll"></div></div>
+      <div class="legend"><span><i class="ghost"></i>Play here</span><span><i class="hit" style="background:var(--leaf)"></i>On time</span><span><i class="hit" style="background:var(--marigold)"></i>Early or late</span><span><i class="hit" style="background:var(--coral)"></i>Wrong or extra</span></div>
+      <div class="score"><span class="label">Clean bars</span><span class="streak" id="tStreak"><i></i><i></i></span></div>
+      <p class="status" id="tStatus" aria-live="polite"></p>
+      <div class="field"><span class="label">Pads (tap or click)</span><div class="pads" id="tPads"></div></div>
+    </div>
+  </section>
+
+  <div class="finale">
+    <div>
+      <h2 id="finTitle">Take it to your DAW</h2>
+      <p>Program one of the gallery patterns in your own project, then change one thing at a time: a note, a length, a layer. That is how a bassline becomes yours.</p>
+    </div>
+    <div class="btns"><a class="btn" href="learn.html">Chords lessons</a><a class="btn" href="index.html">Play Harmony Game</a></div>
+  </div>
 </main>
 
+<script>
+(() => {
+  'use strict';
+  // ---------- Small helpers ----------
+  const $ = id => document.getElementById(id);
+  function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function setSeg(seg, v){ seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v)))); }
+  function onSeg(seg, fn){ seg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; setSeg(seg, b.dataset.v); fn(b.dataset.v); }); }
+  const segVal = seg => { const b = seg.querySelector('[aria-pressed="true"]'); return b ? b.dataset.v : null; };
+  function say(id, text, tone){ const s = $(id); s.textContent = text; s.dataset.tone = tone || ''; }
+  const smooth = () => matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+
+  // ---------- Theory ----------
+  const SHARP = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+  const FLAT  = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+  const ROOT_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','B♭','B'];
+  const SHARP_ROOTS = [1,3,4,6,8,9,11];
+  const pcName = (pc, root) => (SHARP_ROOTS.includes(root) ? SHARP : FLAT)[((pc % 12) + 12) % 12];
+  const noteName = m => SHARP[m % 12] + (Math.floor(m / 12) - 1);
+  const MAJ = [0,2,4,5,7,9,11];
+  const SCALES = {
+    minor:{w:'minor', iv:[0,2,3,5,7,8,10], mood:'moody and neutral, the default for most dance basslines'},
+    phrygian:{w:'Phrygian', iv:[0,1,3,5,7,8,10], mood:'dark and tense, because the ♭2 sits one half step above the root'},
+    dorian:{w:'Dorian', iv:[0,2,3,5,7,9,10], mood:'minor but hopeful, thanks to its raised 6th. Melodic house loves it'},
+    major:{w:'major', iv:[0,2,4,5,7,9,11], mood:'bright and happy, and much rarer for club basslines'}
+  };
+  const degLabel = (scale, d) => { if (d === 8) return '8'; const diff = SCALES[scale].iv[d-1] - MAJ[d-1]; return (diff < 0 ? '♭' : diff > 0 ? '♯' : '') + d; };
+  // bass register: roots sit from A1 (33) up to G♯2 (44)
+  const bassBase = root => 33 + ((root - 9 + 12) % 12);
+  const degMidi = (root, scale, d) => bassBase(root) + (d === 8 ? 12 : SCALES[scale].iv[d-1]);
+  // pattern strings: a digit starts a note on that scale degree, "-" holds it, "." is a rest
+  function parsePat(str){
+    const out = []; let cur = null;
+    [...str].forEach((c, i) => {
+      if (c === '-' && cur && cur.s + cur.len === i) cur.len++;
+      else if ('12345678'.includes(c)){ cur = {s:i, d:+c, len:1}; out.push(cur); }
+      else cur = null;
+    });
+    return out;
+  }
+  const clone = notes => notes.map(n => ({...n}));
+  const pos = s => s % 4 + 1;
+  // notes held on a keyboard right now: bass midi -> {count, voice}
+  const held = new Map();
+  const heldPcs = () => new Set([...held.keys()].map(m => m % 12));
+
+  // ---------- Audio ----------
+  let AC = null, master = null, bassBus = null, duck = null, drumBus = null, soundOn = true;
+  function ensureAudio(){
+    if (!AC){
+      try {
+        AC = new (window.AudioContext || window.webkitAudioContext)();
+        master = AC.createGain(); master.gain.value = 0.34;
+        const comp = AC.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4;
+        master.connect(comp); comp.connect(AC.destination);
+        duck = AC.createGain(); duck.connect(master);
+        bassBus = AC.createGain(); bassBus.gain.value = 0.9; bassBus.connect(duck);
+        drumBus = AC.createGain(); drumBus.gain.value = 0.85; drumBus.connect(master);
+      } catch(e){ AC = null; }
+    }
+    if (AC && AC.state === 'suspended') AC.resume().catch(() => {});
+  }
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  function osc(type, f, t, detune){ const o = AC.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); if (detune) o.detune.value = detune; o.start(t); return o; }
+  const curves = new Map();
+  function curve(drive){
+    const k = Math.round(drive * 10) / 10;
+    if (!curves.has(k)){
+      const n = 1024, c = new Float32Array(n), a = 1 + k * 9;
+      for (let i = 0; i < n; i++){ const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(a * x) / Math.tanh(a); }
+      curves.set(k, c);
+    }
+    return curves.get(k);
+  }
+  const FIFTH = Math.pow(2, 7/12);
+  const DEFAULT_L = {sub:1, mid:1, top:0, pluck:0.5, drive:0.2, res:0.15, punch:0, attack:0, gain:1};
+  // one bass note built from up to three layers; fromF makes it slide in from the previous pitch
+  function bassVoice(m, t, vel, Lin, fromF){
+    const L = {...DEFAULT_L, ...Lin}, f = hz(m), out = AC.createGain(), srcs = [];
+    const atk = Math.max(0.004, L.attack);
+    out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(vel * L.gain, t + atk);
+    out.connect(bassBus);
+    const slide = (o, mult) => { if (fromF && Math.abs(fromF - f) > 0.5){ o.frequency.setValueAtTime(fromF * mult, t); o.frequency.exponentialRampToValueAtTime(f * mult, t + 0.08); } };
+    if (L.sub){
+      const o = osc('sine', f, t), g = AC.createGain(); g.gain.value = 0.85 * L.sub;
+      if (L.punch){ o.frequency.setValueAtTime(f * 2.6, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.04); } else slide(o, 1);
+      o.connect(g); g.connect(out); srcs.push(o);
+    }
+    if (L.mid || L.top){
+      const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.7 + L.res * 16;
+      const closed = Math.min(4000, f * 2.5 + 180 + (1 - L.pluck) * 1100), open = Math.min(10000, closed + 400 + L.pluck * 5200);
+      lp.frequency.setValueAtTime(open, t); lp.frequency.exponentialRampToValueAtTime(closed, t + 0.07 + 0.18 * (1 - L.pluck));
+      const hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = L.sub ? 110 : 35; hp.Q.value = 0.6;
+      const sh = AC.createWaveShaper(); sh.curve = curve(L.drive);
+      const g = AC.createGain(); g.gain.value = 0.42 - L.drive * 0.12;
+      if (L.mid) [-9, 9].forEach(d => { const o = osc('sawtooth', f, t, d), og = AC.createGain(); og.gain.value = 0.5 * L.mid; slide(o, 1); o.connect(og); og.connect(lp); srcs.push(o); });
+      if (L.top){ const o = osc('sawtooth', f * FIFTH, t), og = AC.createGain(); og.gain.value = 0.32 * L.top; slide(o, FIFTH); o.connect(og); og.connect(lp); srcs.push(o); }
+      lp.connect(hp); hp.connect(sh); sh.connect(g); g.connect(out);
+    }
+    return {out, srcs, f};
+  }
+  function endVoice(v, t, rel){ const r = rel || 0.03; v.out.gain.setTargetAtTime(0, t, r); v.srcs.forEach(o => { try { o.stop(t + r * 8 + 0.05); } catch(e){} }); }
+  function cutVoice(v){
+    if (!AC) return; const t = AC.currentTime;
+    try { v.out.gain.cancelScheduledValues(t); v.out.gain.setValueAtTime(v.out.gain.value, t); } catch(e){}
+    v.out.gain.setTargetAtTime(0, t, 0.015);
+    v.srcs.forEach(o => { try { o.stop(t + 0.15); } catch(e){} });
+  }
+  // a triangle that glides between two notes, used to fill gaps
+  function glideVoice(m1, m2, t, dur){
+    const o = osc('triangle', hz(m1), t), g = AC.createGain();
+    o.frequency.exponentialRampToValueAtTime(hz(m2), t + dur * 0.85);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.6, t + 0.01); g.gain.setTargetAtTime(0, t + dur * 0.9, 0.04);
+    o.connect(g); g.connect(bassBus); o.stop(t + dur + 0.4);
+    return {out:g, srcs:[o]};
+  }
+  // sub drop: a falling sine that marks the start of a drop
+  function dropVoice(m, t){
+    const o = osc('sine', hz(m + 12), t), g = AC.createGain();
+    o.frequency.exponentialRampToValueAtTime(hz(m - 12), t + 1.1);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.7, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 1.3);
+    o.connect(g); g.connect(drumBus); o.stop(t + 1.4);
+    return {out:g, srcs:[o]};
+  }
+  function duckAt(t, amt){
+    if (!amt || !duck) return;
+    duck.gain.setValueAtTime(1, Math.max(AC.currentTime, t - 0.004));
+    duck.gain.linearRampToValueAtTime(1 - amt * 0.92, t + 0.008);
+    duck.gain.setTargetAtTime(1, t + 0.03, 0.05 + amt * 0.07);
+  }
+
+  // ---------- Drums (synthesized) ----------
+  let noiseBuf = null;
+  function noise(){
+    if (!noiseBuf){ noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true; return src;
+  }
+  function hit(kind, t, vel){
+    const out = AC.createGain(), srcs = [];
+    out.connect(drumBus);
+    const env = (peak, decay) => { out.gain.setValueAtTime(0.0001, t); out.gain.linearRampToValueAtTime(peak, t + 0.002); out.gain.exponentialRampToValueAtTime(0.0001, t + decay); return decay; };
+    const filtered = (type, freq, q) => { const n = noise(), f = AC.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q || 0.7; n.connect(f); f.connect(out); srcs.push(n); };
+    const tonal = (type, f1, f2, glide) => { const o = AC.createOscillator(); o.type = type; o.frequency.setValueAtTime(f1, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + glide); o.connect(out); srcs.push(o); };
+    let end;
+    if (kind === 'kick'){ tonal('sine', 155, 46, 0.11); end = env(0.95 * vel, 0.42); }
+    else if (kind === 'clap'){
+      filtered('bandpass', 1400, 1.1);
+      out.gain.setValueAtTime(0.0001, t);
+      [0, 0.011, 0.022].forEach(d => { out.gain.setValueAtTime(0.5 * vel, t + d); out.gain.exponentialRampToValueAtTime(0.08 * vel, t + d + 0.009); });
+      out.gain.setValueAtTime(0.45 * vel, t + 0.033); out.gain.exponentialRampToValueAtTime(0.0001, t + 0.24); end = 0.25;
+    }
+    else if (kind === 'hatC'){ filtered('highpass', 7500); end = env(0.3 * vel, 0.045); }
+    else if (kind === 'hatO'){ filtered('highpass', 6800); end = env(0.24 * vel, 0.22); }
+    else if (kind === 'shaker'){ filtered('bandpass', 5200, 1.2); end = env(0.2 * vel, 0.055); }
+    else if (kind === 'rim'){ tonal('triangle', 830); end = env(0.28 * vel, 0.06); }
+    else if (kind === 'tom'){ tonal('sine', 190, 120, 0.25); end = env(0.5 * vel, 0.3); }
+    else return null;
+    srcs.forEach(n => { n.start(t); n.stop(t + end + 0.05); });
+    return {out, srcs};
+  }
+  // 16 steps per bar: x = full hit, o = soft hit
+  const KITS = {
+    kick:{kick:'x...x...x...x...'},
+    hats:{kick:'x...x...x...x...', hatO:'..x...x...x...x.'},
+    trainer:{kick:'x...x...x...x...', clap:'....o.......o...', hatO:'..o...o...o...o.'},
+    house:{kick:'x...x...x...x...', clap:'....x.......x...', hatO:'..x...x...x...x.', shaker:'o.o.o.o.o.o.o.o.'},
+    tech:{kick:'x...x...x...x...', clap:'....x.......x...', hatO:'..x...x...x...x.', hatC:'oooooooooooooooo', rim:'...x..o....x..o.'},
+    prog:{kick:'x...x...x...x...', clap:'....x.......x...', hatO:'..x...x...x...x.', shaker:'oooooooooooooooo'},
+    melodic:{kick:'x...x...x...x...', clap:'....o.......o...', hatC:'..x...x...x...x.', shaker:'.o.o.o.o.o.o.o.o'},
+    indie:{kick:'x...x...x...x...', clap:'....x.......x...', hatC:'o.o.o.o.o.o.o.o.', tom:'......x.......o.'},
+    afro:{kick:'x...x...x...x...', hatO:'..x...x...x...x.', shaker:'oo.oo.oo.oo.oo.o', rim:'..o..x....o..x..', tom:'...o......x..o..'}
+  };
+
+  // ---------- Transport: one loop plays at a time ----------
+  // a source describes a loop: len(), bpm(), kit(), side(), swing(), lines(), plus optional glide(), drop(), onStep(), onState()
+  const T = {src:null, timer:0, raf:0, next:0, step:0, loop:0, stepDur:0.12, anchor:0, queue:[], voices:[], lastF:[]};
+  const isPlaying = src => T.src === src;
+  function play(src){
+    ensureAudio(); if (!AC) return;
+    stop();
+    T.src = src; T.step = 0; T.loop = 0; T.lastF = [];
+    T.stepDur = 60 / src.bpm() / 4;
+    T.next = AC.currentTime + 0.08; T.anchor = T.next;
+    T.timer = setInterval(tick, 25); tick();
+    T.raf = requestAnimationFrame(draw);
+    if (src.onState) src.onState(true);
+  }
+  function stop(){
+    if (!T.src) return;
+    const s = T.src; T.src = null;
+    clearInterval(T.timer); cancelAnimationFrame(T.raf);
+    T.queue = [];
+    T.voices.forEach(x => cutVoice(x.v)); T.voices = [];
+    if (duck){ duck.gain.cancelScheduledValues(AC.currentTime); duck.gain.setValueAtTime(1, AC.currentTime); }
+    if (s.onState) s.onState(false);
+    if (s.onStep) s.onStep(-1, -1);
+  }
+  function toggle(src){ isPlaying(src) ? stop() : play(src); }
+  function track(v, end){ if (v) T.voices.push({v, end}); }
+  function tick(){
+    const src = T.src; if (!src || !AC) return;
+    const now = AC.currentTime;
+    T.voices = T.voices.filter(x => x.end > now - 0.5);
+    while (T.next < now + 0.12){
+      const n = src.len();
+      if (T.step >= n) T.step = 0;
+      T.stepDur = 60 / src.bpm() / 4;
+      scheduleStep(src, T.step, T.next, T.loop);
+      T.queue.push({t:T.next, i:T.step, loop:T.loop});
+      T.next += T.stepDur;
+      T.step++;
+      if (T.step >= n){ T.step = 0; T.loop++; }
+    }
+  }
+  function draw(){
+    if (!T.src) return;
+    const now = AC.currentTime;
+    while (T.queue.length && T.queue[0].t <= now){ const q = T.queue.shift(); if (T.src.onStep) T.src.onStep(q.i, q.loop); }
+    T.raf = requestAnimationFrame(draw);
+  }
+  function noteMidi(ln, n, loop){
+    if (ln.follow){ const d = ln.follow[loop % ln.follow.length]; return degMidi(ln.root, ln.scale, d) + (n.d === 8 ? 12 : 0); }
+    return degMidi(ln.root, ln.scale, n.d) + (ln.oct || 0);
+  }
+  function scheduleStep(src, i, t, loop){
+    if (!soundOn) return;
+    const sd = T.stepDur, sw = src.swing ? src.swing() : 0;
+    const tt = t + (i % 2 ? sw * sd * 0.66 : 0);
+    const kit = src.kit && src.kit(), side = src.side ? src.side() : 0;
+    if (kit) for (const k in kit){
+      const ch = kit[k][i % 16];
+      if (ch && ch !== '.'){ track(hit(k, tt, ch === 'x' ? 1 : 0.55), tt + 2); if (k === 'kick') duckAt(tt, side); }
+    }
+    const lines = src.lines();
+    lines.forEach((ln, li) => {
+      if (ln.mute) return;
+      ln.notes.forEach(n => {
+        if (n.s !== i) return;
+        const m = noteMidi(ln, n, loop);
+        const dur = n.len * sd * (n.len >= 4 ? 0.97 : 0.86);
+        const vel = (n.v || (i % 4 === 0 ? 0.95 : 0.82)) * (ln.vel || 1);
+        const v = bassVoice(m, tt, vel, ln.L, ln.porta ? T.lastF[li] : null);
+        endVoice(v, tt + dur, 0.025); track(v, tt + dur + 0.3);
+        T.lastF[li] = v.f;
+      });
+    });
+    const g = src.glide && src.glide(), ln0 = lines[0];
+    if (g && g.s === i && ln0) track(glideVoice(degMidi(ln0.root, ln0.scale, g.from), degMidi(ln0.root, ln0.scale, g.to), tt, g.len * sd), tt + g.len * sd + 0.5);
+    if (src.drop && src.drop() && i === 0 && loop % 2 === 0 && ln0) track(dropVoice(degMidi(ln0.root, ln0.scale, 1), tt), tt + 1.5);
+  }
+  function audition(m, L){
+    if (!soundOn || T.src) return;
+    ensureAudio(); if (!AC) return;
+    const t = AC.currentTime + 0.01, v = bassVoice(m, t, 0.8, L);
+    endVoice(v, t + 0.22);
+  }
+
+  // ---------- Step grid ("roll") ----------
+  // cfg: n(), rows() -> [{d, label, pc}], kit() -> kit or null, editable, onAdd(s, d), onRemove(note)
+  function makeRoll(host, cfg){
+    const api = {notes:[], line2:[], ghost:[], cols:[], noteEls:[], lanes:[], ph:-1};
+    api.render = () => {
+      const n = cfg.n(), rows = cfg.rows();
+      host.innerHTML = ''; host.style.setProperty('--n', n); host.classList.toggle('long', n > 16);
+      api.cols = Array.from({length:n}, () => []); api.noteEls = []; api.lanes = []; api.ph = -1;
+      const deco = (c, s) => { if (s % 4 === 0) c.classList.add('bt'); if (s % 16 === 0 && s) c.classList.add('bar'); if (Math.floor(s / 4) % 2) c.classList.add('alt'); };
+      const head = el('div', 'rrow'); head.appendChild(el('span', 'rl', ''));
+      const hl = el('div', 'lane head'); hl.setAttribute('aria-hidden', 'true');
+      for (let s = 0; s < n; s++){ const c = el('span', 'hc' + (s % 4 === 0 ? ' p1' : ''), String(pos(s))); hl.appendChild(c); api.cols[s].push(c); }
+      head.appendChild(hl); host.appendChild(head);
+      const kit = cfg.kit && cfg.kit();
+      if (kit && kit.kick){
+        const r = el('div', 'rrow'); r.appendChild(el('span', 'rl', 'Kick'));
+        const ln = el('div', 'lane kick'); ln.setAttribute('aria-hidden', 'true');
+        for (let s = 0; s < n; s++){ const c = el('span', 'kc'); deco(c, s); if (kit.kick[s % 16] !== '.') c.appendChild(el('i', 'kd')); ln.appendChild(c); api.cols[s].push(c); }
+        r.appendChild(ln); host.appendChild(r);
+      }
+      rows.forEach(row => {
+        const r = el('div', 'rrow'), lab = el('span', 'rl', row.label);
+        if (row.pc != null) lab.dataset.pc = row.pc;
+        r.appendChild(lab);
+        const ln = el('div', 'lane');
+        for (let s = 0; s < n; s++){
+          const c = el(cfg.editable ? 'button' : 'span', 'cell'); deco(c, s);
+          if (cfg.editable){ c.type = 'button'; c.dataset.s = s; c.setAttribute('aria-label', `Add note at step ${s + 1}, position ${pos(s)}` + (rows.length > 1 ? `, degree ${row.label}` : '')); }
+          ln.appendChild(c); api.cols[s].push(c);
+        }
+        const bars = (list, cls, clickable) => list.filter(x => x.d === row.d).forEach(nt => {
+          const b = el(clickable ? 'button' : 'span', 'nb ' + cls + (nt.s % 4 === 0 ? ' onk' : ''));
+          b.style.left = `calc(${nt.s / n * 100}% + 2px)`; b.style.width = `calc(${Math.min(nt.len, n - nt.s) / n * 100}% - 4px)`;
+          b.dataset.s = nt.s; b.dataset.e = nt.s + nt.len;
+          if (clickable){ b.type = 'button'; b.setAttribute('aria-label', `Remove note at step ${nt.s + 1}`); b.addEventListener('click', e => { e.stopPropagation(); cfg.onRemove(nt); }); }
+          ln.appendChild(b); api.noteEls.push(b);
+        });
+        bars(api.ghost, 'ghost', false); bars(api.line2, 'l2', false); bars(api.notes, '', !!cfg.editable);
+        if (cfg.editable) ln.addEventListener('click', e => { const c = e.target.closest('.cell'); if (c) cfg.onAdd(+c.dataset.s, row.d); });
+        r.appendChild(ln); host.appendChild(r); api.lanes.push(ln);
+      });
+    };
+    api.playhead = i => {
+      if (api.ph >= 0 && api.cols[api.ph]) api.cols[api.ph].forEach(c => c.classList.remove('ph'));
+      api.ph = i;
+      if (i >= 0 && api.cols[i]) api.cols[i].forEach(c => c.classList.add('ph'));
+      api.noteEls.forEach(b => b.classList.toggle('sound', i >= 0 && +b.dataset.s <= i && i < +b.dataset.e));
+    };
+    api.light = pcs => host.querySelectorAll('.rl[data-pc]').forEach(l => l.classList.toggle('lit', pcs.has(+l.dataset.pc)));
+    api.addHit = (p, cls) => { const lane = api.lanes[0]; if (!lane) return; const h = el('i', 'hm ' + cls); h.style.left = (p / cfg.n() * 100) + '%'; lane.appendChild(h); };
+    api.clearHits = () => host.querySelectorAll('.hm').forEach(h => h.remove());
+    return api;
+  }
+  // add/remove notes on an editable state {notes, n(), len()}
+  function addNote(state, s, d){
+    const n = state.n(); let len = Math.min(state.len(), n - s);
+    state.notes = state.notes.filter(x => x.s !== s);
+    const next = state.notes.filter(x => x.s > s).map(x => x.s);
+    if (next.length) len = Math.min(len, Math.min(...next) - s);
+    state.notes.forEach(x => { if (x.s < s && x.s + x.len > s) x.len = s - x.s; });
+    state.notes.push({s, d, len}); state.notes.sort((a, b) => a.s - b.s);
+  }
+  const removeNote = (state, nt) => { state.notes = state.notes.filter(x => x !== nt); };
+
+  // play buttons and tempo selects
+  function bindPlay(btnId, src, labels){
+    const b = $(btnId), [on, off] = labels || ['■ Stop', '▶ Play'];
+    const prev = src.onState;
+    src.onState = st => { b.textContent = st ? on : off; b.setAttribute('aria-pressed', String(st)); if (prev) prev(st); };
+    b.addEventListener('click', () => toggle(src));
+  }
+  function fillTempo(id, def){
+    const s = $(id);
+    [100, 112, 118, 122, 124, 126, 128].forEach(v => { const o = el('option', null, v + ' BPM'); o.value = v; if (v === def) o.selected = true; s.appendChild(o); });
+    return () => +s.value;
+  }
+
+  // ---------- 1. The grid ----------
+  const G_PRE = {kick:'1...1...1...1...', off:'..1...1...1...1.', p24:'.1.1.1.1.1.1.1.1', all:'1111111111111111', clear:'................'};
+  const g = {notes:parsePat(G_PRE.kick), n:() => 16, len:() => 1};
+  const gTempo = fillTempo('gTempo', 122);
+  const gKit = () => segVal($('gDrums')) === 'hats' ? KITS.hats : KITS.kick;
+  const gL = {pluck:0.55, drive:0.2};
+  const gRoll = makeRoll($('gRoll'), {
+    n:() => 16, rows:() => [{d:1, label:'Bass'}], kit:gKit, editable:true,
+    onAdd:(s, d) => { addNote(g, s, d); setSeg($('gPreset'), ''); audition(degMidi(9, 'minor', 1), gL); gRender(); },
+    onRemove:nt => { removeNote(g, nt); setSeg($('gPreset'), ''); gRender(); }
+  });
+  function gRender(){
+    gRoll.notes = g.notes; gRoll.render();
+    const c = [0,0,0,0]; g.notes.forEach(n => c[n.s % 4]++);
+    const total = g.notes.length, off = c[1] + c[2] + c[3];
+    let msg;
+    if (!total) msg = 'No notes yet. Click the grid or pick a preset.';
+    else if (total === 16) msg = 'Every 16th: a rolling wall of bass. It drives hard, and needs sidechain to keep the kick clear.';
+    else if (off === 0) msg = 'Every note sits on the kick. Solid, but the bass and kick hit together and nothing moves.';
+    else if (c[2] === total) msg = 'The classic off-beat bass: the bass answers the kick. A house and trance staple.';
+    else if (c[0] === 0 && c[2] === 0) msg = 'Only positions 2 and 4: bouncy and pushy, never touching the kick.';
+    else if (c[0] === 0) msg = 'Nothing on the kick: the bass weaves around it, which keeps the low end clean.';
+    else msg = 'A mix of positions. That mix is where groove starts.';
+    say('gStatus', `${msg} On the kick: ${c[0]} · position 2: ${c[1]} · position 3: ${c[2]} · position 4: ${c[3]}.`, '');
+  }
+  onSeg($('gPreset'), v => { g.notes = parsePat(G_PRE[v]); gRender(); });
+  onSeg($('gDrums'), () => gRender());
+  const gSrc = {len:() => 16, bpm:gTempo, kit:gKit, side:() => 0.45, lines:() => [{notes:g.notes, root:9, scale:'minor', L:gL}], onStep:i => gRoll.playhead(i)};
+  bindPlay('gPlay', gSrc);
+  gRender();
+
+  // ---------- 2. Rhythm families ----------
+  const FAM = {
+    sustained:{pat:'1---------------', name:'Sustained', feel:'Calm, wide, emotional', best:'Progressive house, melodic techno', tip:'Holds a note while the chords change, usually every four or eight beats. Sidechain makes long notes pump.'},
+    eighth:{pat:'1.1.1.1.1.1.1.1.', name:'Straight 1/8', feel:'Pumping and anthemic', best:'Big hands-in-the-air drops', tip:'Half of these notes land on the kick, so it really needs sidechain. Switch it off and hear the low end blur.'},
+    sixteenth:{pat:'1111111111111111', name:'Straight 1/16', feel:'Relentless drive', best:'Trance, rolling techno', tip:'A note on every step. It clashes with the kick unless the sidechain ducks it.'},
+    dotted:{pat:'1--1--1--1--1-1-', name:'Dotted 1/8', feel:'Syncopated, pushes forward', best:'House and almost any dance genre', tip:'Each note lasts three steps, so it lands on a different position every beat (1, 4, 3, 2…). The syncopation comes for free.'},
+    combo:{pat:'1--1--1-1-.1---.', name:'Combo', feel:'Original and song-like', best:'Pop, and spicing up any track', tip:'Mixes the others: two dotted 1/8s, two straight 1/8s and a 1/4, with a rest to breathe.'}
+  };
+  const f = {fam:'eighth'};
+  const fTempo = fillTempo('fTempo', 124);
+  const fRoll = makeRoll($('fRoll'), {n:() => 16, rows:() => [{d:1, label:'Bass'}], kit:() => KITS.house});
+  const fChordNames = ['Am','F','C','G'];
+  function fRender(){
+    const F = FAM[f.fam];
+    fRoll.notes = parsePat(F.pat); fRoll.render();
+    const info = $('fInfo'); info.innerHTML = '';
+    info.append(el('span', 'big', F.name));
+    const meta = el('div', 'meta'); meta.append(el('span', 'chip', 'Feel: ' + F.feel), el('span', 'chip', 'Best for: ' + F.best)); info.append(meta);
+    info.append(el('p', null, F.tip));
+    if (segVal($('fFollow')) === 'on') info.append(el('p', 'help', 'Chords: Am, F, C, G, one bar each.'));
+  }
+  onSeg($('fFam'), v => { f.fam = v; fRender(); });
+  onSeg($('fFollow'), () => fRender());
+  onSeg($('fSide'), () => {});
+  const fSrc = {
+    len:() => 16, bpm:fTempo, kit:() => KITS.house,
+    side:() => segVal($('fSide')) === 'on' ? 0.6 : 0,
+    lines:() => [{notes:fRoll.notes, root:9, scale:'minor', follow:segVal($('fFollow')) === 'on' ? [1,6,3,7] : null, L:{pluck:0.4, drive:0.15}}],
+    onStep:i => fRoll.playhead(i)
+  };
+  bindPlay('fPlay', fSrc);
+  fRender();
+
+  // ---------- 3. Groove ----------
+  const V_PRE = {stiff:'1-..1-..1-..1-..', clear:'................', example:'1-.1.1-..1-.1-.1'};
+  const v = {notes:parsePat(V_PRE.stiff), n:() => 16, len:() => +segVal($('vLen'))};
+  const vTempo = fillTempo('vTempo', 124);
+  const vSwing = () => +$('vSwing').value / 100;
+  const vL = {pluck:0.55, drive:0.25};
+  const vRoll = makeRoll($('vRoll'), {
+    n:() => 16, rows:() => [{d:1, label:'Bass'}], kit:() => KITS.house, editable:true,
+    onAdd:(s, d) => { addNote(v, s, d); setSeg($('vStart'), ''); audition(degMidi(7, 'minor', 1), vL); vRender(); },
+    onRemove:nt => { removeNote(v, nt); setSeg($('vStart'), ''); vRender(); }
+  });
+  const V_CHECKS = [
+    {k:'off', t:'Off the kick', d:'At least 3 notes on positions 2, 3 or 4'},
+    {k:'len', t:'Mixed lengths', d:'Two or more different note lengths'},
+    {k:'rest', t:'Room to breathe', d:'At least 4 empty steps, with 3+ notes'},
+    {k:'swing', t:'Nudged off the grid', d:'Swing above 10%'}
+  ];
+  function vRender(){
+    vRoll.notes = v.notes; vRoll.render();
+    const covered = new Set(); v.notes.forEach(n => { for (let s = n.s; s < n.s + n.len; s++) covered.add(s); });
+    const ok = {
+      off:v.notes.filter(n => n.s % 4 !== 0).length >= 3,
+      len:new Set(v.notes.map(n => n.len)).size >= 2,
+      rest:v.notes.length >= 3 && 16 - covered.size >= 4,
+      swing:vSwing() > 0.1
+    };
+    const ul = $('vChecks'); ul.innerHTML = '';
+    V_CHECKS.forEach(c => { const li = el('li', ok[c.k] ? 'ok' : ''); li.append(el('span', 'bx')); const tx = el('span', null, c.t); tx.append(el('small', null, c.d)); li.append(tx); ul.append(li); });
+    const n = Object.values(ok).filter(Boolean).length;
+    if (n === 4) say('vStatus', 'That is a groove. Notes off the kick, mixed lengths, space and swing. Mark the lesson done, or keep shaping it.', 'good');
+    else say('vStatus', `${n} of 4. ` + (!v.notes.length ? 'Click the grid to add notes.' : !ok.off ? 'Move some notes off the kick: try positions 2, 3 and 4.' : !ok.len ? 'Pick a different note length above, then add a note.' : !ok.rest ? 'Leave some empty steps; the gaps are part of the rhythm.' : 'Raise the swing a little and listen to the 16ths loosen up.'), '');
+  }
+  onSeg($('vStart'), k => { v.notes = parsePat(V_PRE[k]); if (k === 'example' && vSwing() <= 0.1){ $('vSwing').value = 18; $('vSwingVal').textContent = '18%'; } vRender(); });
+  onSeg($('vLen'), () => {});
+  $('vSwing').addEventListener('input', e => { $('vSwingVal').textContent = e.target.value + '%'; vRender(); });
+  const vSrc = {len:() => 16, bpm:vTempo, swing:vSwing, kit:() => KITS.house, side:() => 0.5, lines:() => [{notes:v.notes, root:7, scale:'minor', L:vL}], onStep:i => vRoll.playhead(i)};
+  bindPlay('vPlay', vSrc);
+  setSeg($('vStart'), 'stiff');
+  vRender();
+
+  // ---------- 4. Notes that move ----------
+  const P_PRE = {
+    one:{pat:'..1...1...1...1.'},
+    fifth:{pat:'..1..5..1..1.5..'},
+    oct:{pat:'.1.8.1.8.1.8.1.8'},
+    seventh:{pat:'1-.1.5.1-.71.5.7'},
+    dark:{pat:'.1.2.1..1.2.1.2.', scale:'phrygian'}
+  };
+  const p = {notes:parsePat(P_PRE.seventh.pat), root:9, scale:'minor', n:() => 16, len:() => +segVal($('pLen'))};
+  const pTempo = fillTempo('pTempo', 124);
+  const pL = {pluck:0.5, drive:0.25};
+  const rootSel = $('pRoot');
+  ROOT_NAMES.forEach((nm, i) => { const o = el('option', null, nm); o.value = i; rootSel.appendChild(o); });
+  const pRows = () => [8,7,6,5,4,3,2,1].map(d => { const m = degMidi(p.root, p.scale, d); return {d, pc:m % 12, label:`${degLabel(p.scale, d)} · ${pcName(m % 12, p.root)}`}; });
+  const pRoll = makeRoll($('pRoll'), {
+    n:() => 16, rows:pRows, kit:() => KITS.house, editable:true,
+    onAdd:(s, d) => { addNote(p, s, d); setSeg($('pPreset'), ''); audition(degMidi(p.root, p.scale, d), pL); pRender(); },
+    onRemove:nt => { removeNote(p, nt); setSeg($('pPreset'), ''); pRender(); }
+  });
+  function pRender(){
+    rootSel.value = p.root; setSeg($('pScale'), p.scale);
+    pRoll.notes = p.notes; pRoll.render(); pRoll.light(heldPcs());
+    const used = [...new Set(p.notes.map(n => n.d))].sort((a, b) => a - b).map(d => degLabel(p.scale, d));
+    say('pStatus', `${ROOT_NAMES[p.root]} ${SCALES[p.scale].w}: ${SCALES[p.scale].mood}.` + (used.length ? ` Degrees in use: ${used.join(', ')}.` : ' Click the grid to add notes.'), '');
+  }
+  onSeg($('pPreset'), k => { const P = P_PRE[k]; p.notes = parsePat(P.pat); if (P.scale) p.scale = P.scale; pRender(); });
+  onSeg($('pScale'), s => { p.scale = s; pRender(); });
+  onSeg($('pLen'), () => {});
+  rootSel.addEventListener('change', () => { p.root = +rootSel.value; pRender(); });
+  const pSrc = {len:() => 16, bpm:pTempo, kit:() => KITS.house, side:() => 0.5, lines:() => [{notes:p.notes, root:p.root, scale:p.scale, L:pL}], onStep:i => pRoll.playhead(i)};
+  bindPlay('pPlay', pSrc);
+
+  // ---------- 6 data: the gallery (defined before lesson 5, which borrows three patterns) ----------
+  const L2_DEF = {sub:0, mid:1, pluck:0.6, drive:0.3, oct:12, gain:0.6};
+  const GALLERY = [
+    {name:'Groovy', genre:'House', ref:'Brunello-style', root:9, scale:'minor', bpm:124, kit:'indie', main:'1-.1.5.1-.71.5.7', L:{pluck:0.45, drive:0.2}, side:0.55,
+      why:['Notes on all four positions, not only the kick','Some notes held for two steps, some short','Root, 5th and ♭7 give it a bouncy, playful swing','Toms in the drums fill around the bass']},
+    {name:'Indie dance', genre:'Indie dance', ref:'Brunello-style', root:7, scale:'minor', bpm:122, kit:'indie', main:'1.51..51.351..5.', L:{pluck:0.8, drive:0.55, res:0.2}, side:0.5,
+      why:['Short plucky notes on positions 1, 3 and 4','Jumps to the 5th and ♭3 make it dance','A driven saw does the job plucks and toms would otherwise do']},
+    {name:'Deep house', genre:'Melodic house', ref:'Lane 8-style', root:5, scale:'minor', bpm:120, kit:'melodic', main:'1-....1-.5-.3-....1-.7-.5-.....8', L:{pluck:0.6, drive:0.15}, side:0.45,
+      line2:{pat:'1---------------6---------------', L:{sub:0, mid:1, pluck:0, drive:0, attack:0.12, gain:0.32}, oct:12},
+      why:['Plucky notes that change position every beat: 1, 3, 2, 1 then 3, 2, 1, 4','A soft drone layer (green) fills the space between plucks','The bass follows the lead melody in a full track']},
+    {name:'Sustained', genre:'Melodic house', ref:'Ben Böhmer-style', root:3, scale:'dorian', bpm:122, kit:'melodic', main:'1-------3-------7-------4-------', L:{pluck:0, drive:0.1, res:0}, side:0.65,
+      why:['Long notes that only change every two beats','The progression climbs i, ♭iii, ♭VII, iv, which sounds hopeful','Sidechain makes the held notes breathe with the kick']},
+    {name:'Octave jumps', genre:'Tech house', ref:'Max Styler-style', root:3, scale:'phrygian', bpm:126, kit:'tech', main:'.1812.1.81.2.18.', L:{pluck:0.65, drive:0.35}, side:0.45,
+      why:['Notes on positions 2, 3 and 4 keep clear of the kick','Octave jumps add bounce without new harmony','The ♭2 of Phrygian gives the darker tech house colour']},
+    {name:'Driving', genre:'Progressive house', ref:'Progressive style', root:9, scale:'minor', bpm:124, kit:'prog', main:'1..1..1.1..1..1.', L:{sub:1, mid:0.5, pluck:0.3}, side:0.55,
+      line2:{pat:'.1.1..1..1.1..1.', L:{sub:0, mid:1, pluck:0.75, drive:0.3, gain:0.5}, oct:12},
+      why:['A low foundation bass and a second plucky bass (green)','They overlap on some steps and not on others','That interlocking push is the progressive house drive']},
+    {name:'Progressive roll', genre:'Progressive house', ref:'Progressive style', root:4, scale:'minor', bpm:124, kit:'prog', main:'.111.115.11.153.', L:{pluck:0.55, drive:0.2}, side:0.5,
+      why:['Almost a rolling 16th line','Rests on every kick and a few gaps in between give it rhythm','Without the gaps it would be a flat wall of bass']},
+    {name:'Bouncy', genre:'Tech house', ref:'Max Styler-style', root:5, scale:'minor', bpm:126, kit:'house', main:'.1.1.1.1.1.1.5.3', L:{pluck:0.6, drive:0.3}, side:0.12, swing:0.12,
+      why:['Only positions 2 and 4, so it never hits with the kick','That is why it barely needs sidechain','A little swing gives the bounce']},
+    {name:'Gnarly', genre:'Afro house', ref:'Afro style', root:4, scale:'phrygian', bpm:122, kit:'afro', main:'1--.2-.1--.5-.7-', L:{top:1, pluck:0.4, drive:0.75, res:0.3}, side:0.45, porta:true,
+      why:['Long notes, on and off the beat','Each note slides into the next (portamento)','A fifth on top and heavy drive make it aggressive','Phrygian ♭2 gives the dark edge']},
+    {name:'Organic', genre:'Indie dance', ref:'Notre Dame-style', root:2, scale:'minor', bpm:118, kit:'indie', main:'1.1.1.1.6.6.6.6.3.3.3.3.7.7.5.5.', L:{pluck:0.35, drive:0.1}, side:0.2,
+      why:['Plain 1/8 notes, like a bass player','The groove comes from the percussion, not the bass','The chords change every half bar, so the bass carries the harmony']},
+    {name:'Classic tech house', genre:'Tech house', ref:'Tech house', root:7, scale:'minor', bpm:126, kit:'tech', main:'..11..1...11..1.', L:{pluck:0.75, drive:0.25, punch:1}, side:0.4, swing:0.15,
+      why:['Positions 3 and 4 only','A little swing nudges the 4s off the grid','A punchy sub with a fast pitch drop acts like a second kick']},
+    {name:'Dark', genre:'Tech house', ref:'Tech house', root:6, scale:'phrygian', bpm:126, kit:'tech', main:'.1.....1.1....21', L:{pluck:0.6, drive:0.4, res:0.7}, side:0.4,
+      why:['Positions 2, 4, 2, 4, then 3 and 4','Phrygian ♭2 right before the bar line','High resonance on the filter gives an acid squelch']},
+    {name:'Movement', genre:'Tech house', ref:'Fisher-style', root:8, scale:'phrygian', bpm:124, kit:'tech', main:'1-----.2--.3---.7-----.1--.2---.', L:{pluck:0.1, drive:0.25}, side:0.7,
+      why:['Long notes that stop just short of the next one','Wanders between root, ♭2, ♭3 and ♭7 without a fixed pattern','Strong sidechain is essential for sustained notes']},
+    {name:'Rolling', genre:'Tech house', ref:'Tech house', root:5, scale:'phrygian', bpm:126, kit:'tech', main:'1..1.1..1..1.1..', L:{pluck:0.5, drive:0.3}, side:0.45, drop:true,
+      line2:{pat:'.111.111.111.111', L:{sub:0, mid:1, pluck:0.7, drive:0.35, gain:0.38}, oct:12},
+      why:['A groovy main bass plus a rolling 16th layer (green) that skips the kicks','A sub drop marks the top of every second bar','One layer brings groove, the other push']},
+    {name:'Afro tech', genre:'Afro tech', ref:'Afro tech', root:5, scale:'minor', bpm:122, kit:'afro', main:'1.11.1.1..11....', L:{pluck:0.45, drive:0.3}, side:0.4,
+      line2:{pat:'..5...3...5.....', L:{sub:0, mid:1, pluck:0.6, drive:0.4, gain:0.45}, oct:12},
+      glide:{s:12, len:4, from:3, to:1},
+      why:['Sub groove on positions 1, 3 and 4','The mid layer (green) plays different notes for movement','A gliding note from ♭3 down to the root fills the gap']},
+    {name:'Deep afro', genre:'Afro house', ref:'Afro style', root:9, scale:'minor', bpm:120, kit:'afro', main:'..1..1.....3..1.', L:{pluck:0.4, drive:0.2}, side:0.35,
+      line2:{pat:'1---------------', L:{sub:0, mid:1, pluck:0, drive:0, attack:0.15, gain:0.25}, oct:12},
+      glide:{s:6, len:4, from:5, to:1},
+      why:['Positions 3, 2, 4 and 3: it avoids the kick','A glide and a soft drone fill the gaps','Percussion does the rest. The bass alone would feel empty']},
+    {name:'Call and response', genre:'Tech house', ref:'Tech house', root:4, scale:'phrygian', bpm:126, kit:'tech', main:'1---............', L:{pluck:0.3, drive:0.3}, side:0.5,
+      line2:{pat:'........1.2.3.1.', L:{sub:0, mid:1, pluck:0.7, drive:0.45, gain:0.55}, oct:12},
+      why:['A long grounding note asks the question','A higher mid-bass (green) answers in the second half','The space in between belongs to the percussion']}
+  ];
+  GALLERY.forEach(P => { P.notes = parsePat(P.main); P.n = P.main.length; if (P.line2) P.line2.notes = parsePat(P.line2.pat); });
+  const patLines = P => {
+    const out = [{notes:P.notes, root:P.root, scale:P.scale, L:P.L, porta:P.porta}];
+    if (P.line2) out.push({notes:P.line2.notes, root:P.root, scale:P.scale, L:{...L2_DEF, ...P.line2.L}, oct:P.line2.oct || 0});
+    return out;
+  };
+  const patRows = P => {
+    const ds = new Set(P.notes.map(n => n.d)); if (P.line2) P.line2.notes.forEach(n => ds.add(n.d));
+    return [...ds].sort((a, b) => b - a).map(d => { const m = degMidi(P.root, P.scale, d); return {d, pc:m % 12, label:`${degLabel(P.scale, d)} · ${pcName(m % 12, P.root)}`}; });
+  };
+  const byName = nm => GALLERY.find(P => P.name === nm);
+
+  // ---------- 5. Layers and sound ----------
+  const LPAT = {groovy:byName('Groovy'), classic:byName('Classic tech house'), rolling:byName('Progressive roll')};
+  const l = {pat:'groovy', sub:true, mid:true, top:false};
+  const lTempo = fillTempo('lTempo', 124);
+  const knob = id => +$(id).value / 100;
+  const lRoll = makeRoll($('lRoll'), {n:() => LPAT[l.pat].n, rows:() => patRows(LPAT[l.pat]), kit:() => KITS.house});
+  const lL = () => ({sub:l.sub ? 1 : 0, mid:l.mid ? 1 : 0, top:l.top ? 1 : 0, pluck:knob('kPluck'), drive:knob('kDrive'), res:knob('kRes'), punch:l.pat === 'classic' ? 1 : 0});
+  function lStatus(){
+    let s;
+    if (!l.sub && !l.mid && !l.top) s = 'All layers are off. Turn one on.';
+    else if (l.sub && !l.mid && !l.top) s = 'Sub alone: deep weight, but on small speakers you may barely hear it. That is why producers add a mid layer.';
+    else if (!l.sub && l.mid) s = 'Mid without sub: you hear the groove clearly, but it feels thin with no weight underneath.';
+    else if (!l.sub && !l.mid) s = 'Only the fifth: bite with nothing underneath. It only works on top of the others.';
+    else s = 'Sub plus mid: weight from the sub, groove and character from the mid. The standard stack.';
+    if (l.top && (l.sub || l.mid)) s += ' The fifth on top adds bite without changing the harmony.';
+    if (knob('kRes') > 0.55 && l.mid) s += ' High resonance: that squelch is the acid sound.';
+    if (knob('kDrive') > 0.65 && l.mid) s += ' Heavy drive: gnarlier and louder, with more harmonics.';
+    const sc = knob('kSide');
+    s += sc > 0.6 ? ' Heavy sidechain: the bass pumps out of the kick\'s way.' : sc < 0.15 ? ' Almost no sidechain: kick and bass now fight on every beat.' : '';
+    say('lStatus', s, '');
+  }
+  function lRender(){
+    const P = LPAT[l.pat];
+    lRoll.notes = P.notes; lRoll.render();
+    $('lStack').querySelectorAll('.layer').forEach(b => b.setAttribute('aria-pressed', String(l[b.dataset.k])));
+    ['kPluck','kDrive','kRes','kSide'].forEach(id => $(id + 'Val').textContent = $(id).value + '%');
+    lStatus();
+  }
+  $('lStack').addEventListener('click', e => { const b = e.target.closest('.layer'); if (!b) return; l[b.dataset.k] = !l[b.dataset.k]; lRender(); });
+  ['kPluck','kDrive','kRes','kSide'].forEach(id => $(id).addEventListener('input', () => { $(id + 'Val').textContent = $(id).value + '%'; lStatus(); }));
+  onSeg($('lPat'), k => { l.pat = k; lRender(); });
+  const lSrc = {len:() => LPAT[l.pat].n, bpm:lTempo, swing:() => LPAT[l.pat].swing || 0, kit:() => KITS.house, side:() => knob('kSide'),
+    lines:() => [{notes:LPAT[l.pat].notes, root:LPAT[l.pat].root, scale:LPAT[l.pat].scale, L:lL()}], onStep:i => lRoll.playhead(i)};
+  bindPlay('lPlay', lSrc);
+  lRender();
+
+  // ---------- 6. Gallery ----------
+  let gal = 0;
+  const galRoll = makeRoll($('galRoll'), {n:() => GALLERY[gal].n, rows:() => patRows(GALLERY[gal]), kit:() => KITS[GALLERY[gal].kit]});
+  const cardEls = GALLERY.map((P, i) => {
+    const b = el('button', 'ccard'); b.type = 'button';
+    b.append(el('span', 'rn', P.genre.toUpperCase()), el('span', 'sym', P.name), el('span', 'desc', `${ROOT_NAMES[P.root]} ${SCALES[P.scale].w} · ${P.bpm} BPM`));
+    b.addEventListener('click', () => { gal = i; galRender(); play(galSrc); });
+    $('galCards').appendChild(b); return b;
+  });
+  function galRender(){
+    const P = GALLERY[gal];
+    cardEls.forEach((c, i) => c.classList.toggle('sel', i === gal));
+    galRoll.notes = P.notes; galRoll.line2 = P.line2 ? P.line2.notes : []; galRoll.render();
+    const info = $('galInfo'); info.innerHTML = '';
+    info.append(el('span', 'big', P.name));
+    const meta = el('div', 'meta');
+    [...new Set([P.genre, P.ref]), `${ROOT_NAMES[P.root]} ${SCALES[P.scale].w}`, `${P.bpm} BPM`, P.n > 16 ? `${P.n / 16} bars` : '1 bar'].forEach(t => meta.append(el('span', 'chip', t)));
+    info.append(meta);
+    const ul = el('ul'); P.why.forEach(w => ul.append(el('li', null, w))); info.append(el('p', null, 'What makes it work:'), ul);
+  }
+  const galSrc = {len:() => GALLERY[gal].n, bpm:() => GALLERY[gal].bpm, swing:() => GALLERY[gal].swing || 0, kit:() => KITS[GALLERY[gal].kit], side:() => GALLERY[gal].side,
+    lines:() => patLines(GALLERY[gal]), glide:() => GALLERY[gal].glide || null, drop:() => !!GALLERY[gal].drop, onStep:i => galRoll.playhead(i)};
+  bindPlay('galPlay', galSrc);
+  $('galEdit').addEventListener('click', () => {
+    const P = GALLERY[gal];
+    stop();
+    p.notes = clone(P.notes.filter(n => n.s < 16)).map(n => ({...n, len:Math.min(n.len, 16 - n.s)}));
+    p.root = P.root; p.scale = P.scale; setSeg($('pPreset'), '');
+    pRender();
+    $('pitch').scrollIntoView({behavior:smooth()});
+    say('pStatus', `${P.name} loaded` + (P.n > 16 ? ' (first bar)' : '') + `. ${ROOT_NAMES[P.root]} ${SCALES[P.scale].w}: ${SCALES[P.scale].mood}. Press Play and start changing notes.`, '');
+  });
+  galRender();
+  pRender();
+
+  // ---------- 7. Play it yourself ----------
+  const LEVELS = [
+    {name:'Off-beat', pat:'..1...1...1...1.', root:9, scale:'minor', tip:'One note in every gap between kicks: position 3. Play it with the open hi-hat.'},
+    {name:'Push', pat:'.1...1...1...1..', root:9, scale:'minor', tip:'Position 2, right after each kick. It feels like the bass leans forward.'},
+    {name:'Dotted 1/8', pat:'1--1--1--1--1-1-', root:9, scale:'minor', tip:'A note every three steps, then two quick ones to close the bar. Count it: 1 . . 1 . . 1.'},
+    {name:'Tech house', pat:'..11..1...11..1.', root:7, scale:'minor', tip:'Positions 3 and 4 in pairs. The pair is the groove: short-short, then a single.'},
+    {name:'Groovy, with notes', pat:'1-.1.5.1-.71.5.7', root:9, scale:'minor', pitch:true, tip:'The Groovy pattern from the gallery. Rhythm and notes both count: root, 5th and ♭7 of A minor.'}
+  ];
+  const tStore = (() => { try { return JSON.parse(localStorage.getItem('hb-bass-train') || '{}') || {}; } catch(e){ return {}; } })();
+  const tr = {lvl:Math.min(LEVELS.length - 1, tStore.lvl || 0), cleared:new Set(tStore.cleared || []), hits:[], streak:0, lastBar:-1};
+  const saveT = () => { try { localStorage.setItem('hb-bass-train', JSON.stringify({lvl:tr.lvl, cleared:[...tr.cleared]})); } catch(e){} };
+  const tLevel = () => LEVELS[tr.lvl];
+  const tNotes = () => parsePat(tLevel().pat);
+  const tBpm = () => +segVal($('tTempo'));
+  const tRoll = makeRoll($('tRoll'), {n:() => 16, rows:() => [{d:1, label:'You'}], kit:() => KITS.trainer});
+  const tL = {pluck:0.5, drive:0.2};
+  function tRenderLevels(){
+    const box = $('tLevels'); box.innerHTML = '';
+    LEVELS.forEach((L, i) => { const b = el('button', tr.cleared.has(i) ? 'done' : '', `${i + 1}. ${L.name}`); b.type = 'button'; b.setAttribute('aria-pressed', String(i === tr.lvl)); b.addEventListener('click', () => tSetLevel(i)); box.appendChild(b); });
+  }
+  function tRenderPads(){
+    const L = tLevel(), box = $('tPads'); box.innerHTML = '';
+    const ds = L.pitch ? [...new Set(tNotes().map(n => n.d))].sort((a, b) => a - b) : [1];
+    ds.forEach(d => {
+      const m = degMidi(L.root, L.scale, d), b = el('button', 'pad'); b.type = 'button';
+      b.append(document.createTextNode(pcName(m % 12, L.root)), el('small', null, degLabel(L.scale, d)));
+      b.setAttribute('aria-label', `Play ${pcName(m % 12, L.root)}`);
+      const down = e => { e.preventDefault(); b.classList.add('hold'); bassIn(m); try { b.setPointerCapture(e.pointerId); } catch(_){} };
+      const up = () => { if (!b.classList.contains('hold')) return; b.classList.remove('hold'); bassOut(m); };
+      b.addEventListener('pointerdown', down); b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up);
+      box.appendChild(b);
+    });
+  }
+  function tRender(){
+    const L = tLevel();
+    tRoll.ghost = tNotes(); tRoll.notes = []; tRoll.render();
+    const info = $('tInfo'); info.innerHTML = '';
+    info.append(el('span', 'big', `Level ${tr.lvl + 1}: ${L.name}`), el('p', null, L.tip));
+    [...$('tStreak').children].forEach((d, i) => d.classList.toggle('on', i < tr.streak));
+    tRenderLevels();
+  }
+  function tSetLevel(i){
+    const was = isPlaying(tSrc); stop();
+    tr.lvl = i; tr.streak = 0; tr.hits = []; saveT();
+    tRender(); tRenderPads();
+    say('tStatus', 'Press Start. Listen for one bar, then play.', '');
+    if (was) play(tSrc);
+  }
+  // judge one finished bar
+  function tJudge(bar){
+    const L = tLevel(), targets = tNotes(), hits = tr.hits.filter(h => h.bar === bar);
+    tr.hits = tr.hits.filter(h => h.bar > bar);
+    const matched = new Set(); let early = 0, late = 0, wrong = 0, extra = 0;
+    hits.forEach(h => {
+      const tg = targets.find(x => x.s === h.step && !matched.has(x));
+      if (!tg || Math.abs(h.err) > 0.45){ extra++; return; }
+      matched.add(tg);
+      if (L.pitch && h.pc !== degMidi(L.root, L.scale, tg.d) % 12) wrong++;
+      if (h.err < -0.2) early++; else if (h.err > 0.2) late++;
+    });
+    const missed = targets.length - matched.size, good = matched.size - wrong;
+    const clean = missed === 0 && extra === 0 && wrong === 0;
+    if (!hits.length){ tr.streak = 0; say('tStatus', 'Nothing played that bar. Come in on the outlined steps.', ''); }
+    else if (clean){
+      tr.streak++;
+      if (tr.streak >= 2){
+        tr.cleared.add(tr.lvl); saveT();
+        const last = tr.lvl === LEVELS.length - 1;
+        say('tStatus', last ? 'Level cleared, and that was the last one. You can play basslines in time. Try a faster tempo or turn the guide off.' : 'Level cleared! Two clean bars in a row. Pick the next level when you are ready.', 'good');
+        tr.streak = 0; tRenderLevels();
+      } else say('tStatus', `Clean bar! ${good} of ${targets.length} on target.` + (early || late ? ` (${early ? early + ' a little early' : ''}${early && late ? ', ' : ''}${late ? late + ' a little late' : ''})` : '') + ' One more.', 'good');
+    } else {
+      tr.streak = 0;
+      const bits = [];
+      if (missed) bits.push(`${missed} missed`);
+      if (extra) bits.push(`${extra} extra`);
+      if (wrong) bits.push(`${wrong} wrong note${wrong > 1 ? 's' : ''}`);
+      const hint = early > late ? ' You tend to rush: wait a hair longer.' : late > early ? ' You tend to drag: come in a hair sooner.' : '';
+      say('tStatus', `${good} of ${targets.length} on target · ${bits.join(', ')}.${hint}`, '');
+    }
+    [...$('tStreak').children].forEach((d, i) => d.classList.toggle('on', i < tr.streak));
+  }
+  function tHit(m){
+    if (!isPlaying(tSrc) || !AC) return;
+    const sd = T.stepDur, lat = AC.outputLatency || AC.baseLatency || 0;
+    const g = (AC.currentTime - lat - T.anchor) / sd, gi = Math.round(g);
+    const bar = Math.floor(gi / 16), step = ((gi % 16) + 16) % 16, err = g - gi;
+    if (bar < 1) return; // the first bar is a count-in
+    const h = {bar, step, err, pc:m % 12};
+    tr.hits.push(h);
+    const L = tLevel(), tg = tNotes().find(x => x.s === step);
+    let cls = 'bad';
+    if (tg && (!L.pitch || h.pc === degMidi(L.root, L.scale, tg.d) % 12)) cls = Math.abs(err) <= 0.2 ? 'on' : Math.abs(err) <= 0.45 ? 'near' : 'bad';
+    tRoll.addHit(((g % 16) + 16) % 16 + 0.5, cls);
+  }
+  const tSrc = {
+    len:() => 16, bpm:tBpm, kit:() => KITS.trainer, side:() => 0.4,
+    lines:() => [{notes:tNotes(), root:tLevel().root, scale:tLevel().scale, L:tL, mute:segVal($('tGuide')) === 'off', vel:0.8}],
+    onStep:(i, loop) => {
+      tRoll.playhead(i);
+      if (i === 0 && loop >= 0){
+        if (loop >= 2) tJudge(loop - 1);
+        tRoll.clearHits();
+        if (loop === 0) say('tStatus', 'Count-in: listen to this bar…', '');
+        else if (loop === 1 && !tr.hits.length) say('tStatus', 'Now play along!', '');
+      }
+    }
+  };
+  bindPlay('tPlay', tSrc, ['■ Stop', '▶ Start']);
+  const prevT = tSrc.onState;
+  tSrc.onState = st => { prevT(st); if (st){ tr.hits = []; tr.streak = 0; [...$('tStreak').children].forEach(d => d.classList.remove('on')); } else tRoll.clearHits(); };
+  onSeg($('tTempo'), () => { if (isPlaying(tSrc)) play(tSrc); });
+  onSeg($('tGuide'), () => {});
+  tRender(); tRenderPads();
+  say('tStatus', 'Press Start. Listen for one bar, then play.', '');
+
+  // ---------- Input: MIDI, computer keys, pads ----------
+  // everything played sounds two octaves down, folded into bass range
+  const toBass = m => { let b = m - 24; while (b < 28) b += 12; while (b > 55) b -= 12; return b; };
+  const liveL = {pluck:0.5, drive:0.25};
+  function bassIn(b){
+    ensureAudio(); maybeInitMidi();
+    const h = held.get(b);
+    if (h){ h.count++; }
+    else {
+      let voice = null;
+      if (AC && soundOn){ voice = bassVoice(b, AC.currentTime, 0.85, liveL); }
+      held.set(b, {count:1, voice});
+    }
+    tHit(b);
+    renderHeld();
+  }
+  function bassOut(b){
+    const h = held.get(b); if (!h) return;
+    if (--h.count <= 0){ if (h.voice) cutVoice(h.voice); held.delete(b); }
+    renderHeld();
+  }
+  function renderHeld(){
+    const ms = [...held.keys()].sort((a, b) => a - b);
+    $('liveNotes').textContent = ms.length ? ms.map(noteName).join(' ') : 'nothing yet';
+    pRoll.light(heldPcs());
+  }
+  // computer keys
+  const KMAP = 'awsedftgyhujkolp;';
+  let octShift = 0; const kDown = {};
+  function releaseKeys(){ for (const k in kDown){ bassOut(kDown[k]); delete kDown[k]; } }
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const tag = e.target && e.target.tagName;
+    if (tag === 'SELECT' || tag === 'TEXTAREA' || (tag === 'INPUT' && e.target.type !== 'range')) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' || k === 'x'){ if (!e.repeat){ releaseKeys(); octShift = Math.max(-2, Math.min(2, octShift + (k === 'x' ? 1 : -1))); } return; }
+    const i = KMAP.indexOf(k); if (i < 0) return;
+    e.preventDefault(); if (e.repeat || kDown[k] != null) return;
+    const b = toBass(60 + octShift * 12 + i); kDown[k] = b; bassIn(b);
+  });
+  addEventListener('keyup', e => { const k = e.key.toLowerCase(); if (kDown[k] != null){ bassOut(kDown[k]); delete kDown[k]; } });
+  addEventListener('blur', releaseKeys);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) releaseKeys(); });
+  // MIDI
+  let midiTried = false, blinkT = 0;
+  const midiHeld = new Map(); // input note -> bass note
+  function setMidi(state, text){ $('midiPill').dataset.state = state; $('midiText').textContent = text; $('midiPill').title = text; }
+  function blink(){ const d = $('midiDot'); d.classList.add('blink'); clearTimeout(blinkT); blinkT = setTimeout(() => d.classList.remove('blink'), 90); }
+  function onMidi(e){
+    blink();
+    const [st, d1, d2] = e.data, cmd = st & 0xF0;
+    if (cmd === 0x90 && d2 > 0){ const b = toBass(d1); midiHeld.set(d1, b); bassIn(b); }
+    else if (cmd === 0x80 || (cmd === 0x90 && d2 === 0)){ const b = midiHeld.get(d1); if (b != null){ midiHeld.delete(d1); bassOut(b); } }
+  }
+  function attach(acc){
+    const names = []; acc.inputs.forEach(inp => { inp.onmidimessage = onMidi; names.push(inp.name); });
+    setMidi(names.length ? 'on' : 'idle', names.length ? `MIDI: ${names[0]}` : 'MIDI: no keyboard found');
+  }
+  async function initMidi(){
+    midiTried = true;
+    if (!navigator.requestMIDIAccess){ setMidi('off', 'MIDI not supported in this browser'); return; }
+    try { const acc = await navigator.requestMIDIAccess(); attach(acc); acc.onstatechange = () => attach(acc); }
+    catch(e){ setMidi('off', 'MIDI blocked here. Use computer keys'); }
+  }
+  function maybeInitMidi(){ if (!midiTried) initMidi(); }
+  $('midiPill').addEventListener('click', () => { ensureAudio(); initMidi(); });
+  addEventListener('pointerdown', () => { ensureAudio(); maybeInitMidi(); }, {once:true});
+  // mute
+  $('muteBtn').addEventListener('click', () => {
+    soundOn = !soundOn;
+    $('muteBtn').setAttribute('aria-pressed', String(!soundOn));
+    $('muteText').textContent = soundOn ? 'Sound: on' : 'Sound: muted';
+    if (!soundOn){ T.voices.forEach(x => cutVoice(x.v)); T.voices = []; held.forEach(h => { if (h.voice) cutVoice(h.voice); h.voice = null; }); }
+  });
+
+  // ---------- Navigation and progress ----------
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => $(b.dataset.go).scrollIntoView({behavior:smooth()})));
+  const LESSONS = ['grid','families','groove','pitch','layers','gallery','play'];
+  let done = new Set();
+  try { const raw = localStorage.getItem('hb-bass-done'); if (raw) done = new Set(JSON.parse(raw).filter(x => LESSONS.includes(x))); } catch(e){}
+  function renderDone(){
+    LESSONS.forEach((id, i) => {
+      const sec = $(id), on = done.has(id), t = sec.querySelector('.done-toggle');
+      sec.classList.toggle('is-done', on);
+      t.setAttribute('aria-pressed', String(on));
+      t.querySelector('.t').textContent = on ? 'Done' : 'Mark as done';
+      const tb = document.querySelector(`[data-go="${id}"]`);
+      tb.classList.toggle('done', on); tb.querySelector('b').textContent = on ? '✓' : String(i + 1);
+    });
+    const n = done.size, N = LESSONS.length;
+    [...$('progSegs').children].forEach((s, i) => s.classList.toggle('on', i < n));
+    $('progText').textContent = n === N ? `All ${N} lessons done` : `${n} of ${N} lessons done`;
+    $('finTitle').textContent = n === N ? 'You know your basslines. Take them to your DAW' : 'Take it to your DAW';
+  }
+  document.querySelectorAll('.done-toggle').forEach(t => t.addEventListener('click', () => {
+    const id = t.closest('.lesson').id;
+    done.has(id) ? done.delete(id) : done.add(id);
+    try { localStorage.setItem('hb-bass-done', JSON.stringify([...done])); } catch(e){}
+    renderDone();
+  }));
+  renderDone();
+  const h = location.hash.slice(1);
+  if (h && $(h) && $(h).classList.contains('lesson')) setTimeout(() => $(h).scrollIntoView(), 50);
+})();
+</script>
 </body>
 </html>
