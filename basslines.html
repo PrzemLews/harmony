@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Harmony Basslines</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&family=Kalam:wght@700&display=swap">
+<style>
+/* Basslines learning page — shell only. Shares the look of learn.html (Chords). */
+:root{
+  --paper:#E6EBE3;
+  --paper-2:#D7DFD3;
+  --sheet:#FBFCF8;
+  --ink:#1E2A45;
+  --ink-soft:#56627C;
+  --marigold:#F2A900;
+  --coral:#D9483D;
+  --leaf:#23805F;
+  --f-display:"Bagel Fat One","Arial Rounded MT Bold",system-ui,sans-serif;
+  --f-body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-chord:"Kalam","Comic Sans MS","Chalkboard SE",cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{background:var(--paper);color:var(--ink)}
+body{margin:0;font-family:var(--f-body);font-size:16px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
+.gutter{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:2px solid var(--ink)}
+.top-inner{max-width:1100px;margin:0 auto;padding-block:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 20px}
+.mark-name{font-family:var(--f-display);font-size:22px;line-height:1;text-decoration:none;color:var(--ink)}
+.label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft)}
+
+main{max-width:1100px;margin:0 auto;padding-block:28px 56px}
+.hero{display:grid;gap:14px;padding-bottom:28px}
+.modnav{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:14px;margin-bottom:4px;border-bottom:2px solid var(--ink)}
+.mod{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 150px;max-width:240px;padding:9px 14px;border:1.5px solid var(--ink);border-radius:10px;background:var(--sheet);color:var(--ink);text-decoration:none;line-height:1.25}
+.mod b{font-size:15px}
+.mod small{font-size:12px;color:var(--ink-soft)}
+a.mod:hover{background:var(--paper-2)}
+.mod.cur{background:var(--ink);color:var(--sheet);box-shadow:3px 3px 0 var(--marigold)}
+.mod.cur small{color:var(--paper-2)}
+.mod.soon{border-style:dashed;border-color:var(--ink-soft);background:transparent;color:var(--ink-soft);cursor:default}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(36px,6vw,60px);line-height:1;margin:0;text-wrap:balance}
+a:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner gutter">
+    <a class="mark-name" href="index.html">Harmony</a>
+  </div>
+</header>
+
+<main class="gutter">
+  <section class="hero">
+    <nav class="modnav" aria-label="Learning pages">
+      <a class="mod" href="learn.html"><b>Chords</b><small>Notes, scales, chords, harmony</small></a>
+      <span class="mod soon" aria-disabled="true"><b>Melodies</b><small>Coming soon</small></span>
+      <a class="mod cur" href="basslines.html" aria-current="page"><b>Basslines</b><small>Patterns and grooves</small></a>
+    </nav>
+    <span class="label">Basslines page</span>
+    <h1>Basslines</h1>
+  </section>
+</main>
+
+</body>
+</html>
