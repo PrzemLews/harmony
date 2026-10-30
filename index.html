@@ -401,7 +401,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <p>A <span class="term">scale</span> is a set of seven notes picked out of the twelve, played in order. Which seven you pick follows a fixed pattern of whole steps (W) and half steps (H).</p>
       <p>The <b>major scale</b> follows <b>W W H W W W H</b>. It sounds bright and settled. Start it on C and you get only white keys: C D E F G A B C. The <b>natural minor scale</b> follows <b>W H W W H W W</b> and sounds darker. Start the same pattern on any other key and black keys appear, because the pattern stays the same.</p>
       <p>Each note of a scale has a number called its <span class="term">degree</span>. The first note, 1, is the <span class="term">root</span> or home note. The scale gives a song its <span class="term">key</span>: a song "in C major" mostly uses the notes of the C major scale.</p>
-      <p>Not every musical culture uses these two scales, or even seven notes. Japanese, Chinese and Indonesian music often use <b>five-note (pentatonic) scales</b> with wider gaps, and Indian ragas and Arabic maqams use their own step patterns. Some traditions, like gamelan tuning or the quarter tones of Arabic music, use pitches that fall between the piano's keys. Pick a world scale below to hear its closest piano version.</p>
+      <p>Not every musical culture uses these two scales, or even seven notes. Japanese, Chinese and Indonesian music often use <b>five-note (pentatonic) scales</b> with wider gaps, and Indian ragas and Arabic maqams use their own step patterns. Some traditions, like gamelan tuning or the quarter tones of Arabic music, use pitches that fall between the piano's keys. The Arabic maqams listed below fit the piano's keys exactly. Others, like Rast, Bayati and Saba, need quarter tones, so they're left out. Pick a world scale below to hear its closest piano version.</p>
     </div>
     <div class="tool">
       <div class="controls">
@@ -411,7 +411,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
           <optgroup label="Japan"><option value="hirajoshi">Hirajōshi</option><option value="insen">In (Miyako-bushi)</option></optgroup>
           <optgroup label="China"><option value="gong">Gong pentatonic</option></optgroup>
           <optgroup label="Indonesia (gamelan)"><option value="pelog">Pelog</option><option value="slendro">Slendro</option></optgroup>
-          <optgroup label="Middle East"><option value="hijaz">Hijaz (maqam)</option></optgroup>
+          <optgroup label="Arabic (maqam)"><option value="hijaz">Hijaz</option><option value="hijazkar">Hijaz Kar</option><option value="nahawand">Nahawand</option><option value="kurd">Kurd</option><option value="nikriz">Nikriz</option><option value="atharkurd">Athar Kurd</option></optgroup>
           <optgroup label="India (raga)"><option value="bhairav">Bhairav</option><option value="yaman">Yaman</option><option value="bhairavi">Bhairavi</option></optgroup>
         </select></label>
         <button class="btn ghost" type="button" id="scaleHear">Hear it</button>
@@ -723,6 +723,11 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     pelog:{w:'Pelog', iv:[0,1,3,7,8], deg:[0,1,2,4,5], names:ROOT_MAJ, info:'Indonesia (gamelan). Real pelog tuning falls between piano keys and differs from one gamelan to the next, so this is its closest piano version.'},
     slendro:{w:'Slendro', iv:[0,2,5,7,9], deg:[0,1,3,4,5], names:ROOT_MAJ, info:'Indonesia (gamelan). Five almost equal steps, which a piano can only approximate.'},
     hijaz:{w:'Hijaz', iv:[0,1,4,5,7,8,10], names:ROOT_MAJ, info:'Middle East (Arabic maqam). The wide 1½-step jump from the 2nd to the 3rd note gives its famous sound, also heard in Turkish, Jewish and flamenco music. Real maqam tuning can differ slightly from the piano.'},
+    hijazkar:{w:'Hijaz Kar', iv:[0,1,4,5,7,8,11], names:ROOT_MAJ, info:'Middle East (Arabic maqam). Hijaz in both halves of the scale: two 1½-step jumps make it even more dramatic. On the piano it has the same notes as raga Bhairav.'},
+    nahawand:{w:'Nahawand', iv:[0,2,3,5,7,8,11], names:ROOT_MIN, info:'Middle East (Arabic maqam). Lyrical and longing. It climbs like the Western harmonic minor, with a raised 7th that leans back to the root.'},
+    kurd:{w:'Kurd', iv:[0,1,3,5,7,8,10], names:ROOT_MIN, info:'Middle East (Arabic maqam). Dark and tender, opening with a half step. On the piano it has the same notes as raga Bhairavi and the Western Phrygian mode.'},
+    nikriz:{w:'Nikriz', iv:[0,2,3,6,7,9,10], names:ROOT_MIN, info:'Middle East (Arabic maqam). A 1½-step jump in the middle, from the 3rd up to a raised 4th, gives it a restless, folk-like colour. Also heard in Turkish and Eastern European music.'},
+    atharkurd:{w:'Athar Kurd', iv:[0,1,3,6,7,8,11], names:ROOT_MIN, info:'Middle East (Arabic maqam). Two 1½-step jumps and four half steps make it one of the most tense and exotic maqams that fits the piano.'},
     bhairav:{w:'Bhairav', iv:[0,1,4,5,7,8,11], names:ROOT_MAJ, info:'India (raga). A morning raga with two 1½-step gaps. A raga is more than its notes, with rules for melody and mood, so this is its set of pitches.'},
     yaman:{w:'Yaman', iv:[0,2,4,6,7,9,11], names:ROOT_MAJ, info:'India (raga). An evening raga. Its raised 4th gives a bright, floating feel, like the Western Lydian mode.'},
     bhairavi:{w:'Bhairavi', iv:[0,1,3,5,7,8,10], names:ROOT_MAJ, info:'India (raga). Often played to close a concert. Tender and devotional, with the same notes as the Western Phrygian mode.'}
