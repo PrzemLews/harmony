@@ -117,6 +117,11 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 .steps .s{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--paper-2);color:var(--ink-soft)}
 .steps .s.h{background:var(--marigold);color:var(--ink)}
 .steps .s.x{background:var(--ink);color:var(--sheet)}
+/* Play along: played steps turn green, the next note and the step into it stand out, the rest waits greyed out */
+.steps .ahead{opacity:.3}
+.steps .s.done{background:#CFE5DA;color:var(--leaf)}
+.steps .n.next{background:var(--marigold);border-radius:6px;padding:3px 5px}
+.steps .s.next{box-shadow:0 0 0 2px var(--ink);font-size:13px;padding:3px 9px}
 
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
 .cards.wide{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
@@ -153,6 +158,15 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 .key.mk .ml{display:block}
 .key.w.mk{background:#F3E2B4}
 .key.b.mk{background:#5C4A1C}
+.key.w.mk.ahead{background:var(--sheet)}
+.key.mk.ahead .ml{opacity:.4}
+.key.w.mk.got{background:#D8EADF}
+.key.b.mk.got{background:#2E5E4B}
+.key.got .ml{background:var(--leaf);color:var(--sheet)}
+.key.next{box-shadow:inset 0 0 0 3px var(--marigold)}
+.key.next .ml{background:var(--marigold);color:var(--ink);transform:scale(1.2);animation:nextPulse 1.2s ease-in-out infinite}
+@keyframes nextPulse{50%{transform:scale(1.4)}}
+@media (prefers-reduced-motion:reduce){.key.next .ml{animation:none}}
 .key.on,.key.hold{background:var(--marigold)!important}
 .key.play{background:var(--leaf)!important}
 .key.play .nm{color:var(--sheet)}
@@ -970,14 +984,41 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     });
     const up = e => { const m = ptr.get(e.pointerId); if (m != null){ ptr.delete(e.pointerId); noteOff(m); } };
     host.addEventListener('pointerup', up); host.addEventListener('pointercancel', up);
+    let lo = LO, namer = null, lastMarks = null;
     const p = {
       keys,
-      names(fn){
-        host.classList.add('named');
-        for (const [m,k] of keys){ let n = k.querySelector('.kn'); if (!n){ n = el('span', 'kn'); k.appendChild(n); } n.textContent = fn ? (fn(m) || '') : ''; }
+      // the lowest and highest notes currently drawn; shift() can move the view by octaves
+      fold(m){ while (m < lo) m += 12; while (m > lo + HI - LO) m -= 12; return m; },
+      shift(newLo){
+        if (newLo === lo) return;
+        const d = newLo - lo; lo = newLo; p.keys = new Map();
+        for (const k of host.children){
+          const m = +k.dataset.m + d; k.dataset.m = m; p.keys.set(m, k);
+          const nm = k.querySelector('.nm'); if (nm && m % 12 === 0) nm.textContent = 'C' + (Math.floor(m/12) - 1);
+        }
+        if (namer) p.names(namer);
+        if (lastMarks) p.marks(lastMarks);
       },
-      marks(map){ for (const [m,k] of keys){ const lab = map && map.get(m); k.classList.toggle('mk', lab != null); k.querySelector('.ml').textContent = lab != null ? lab : ''; } },
-      flash(ms, dur){ ms.forEach(m => { const k = keys.get(fold(m)); if (k){ k.classList.add('play'); later(dur, () => k.classList.remove('play')); } }); }
+      // move a group of notes by whole octaves so it fits the view, keeping its shape; notes already on screen stay put
+      place(ms){
+        if (!ms.length) return ms;
+        const hi = lo + HI - LO; let n = ms.slice();
+        while (Math.min(...n) < lo && Math.max(...n) + 12 <= hi) n = n.map(x => x + 12);
+        while (Math.max(...n) > hi && Math.min(...n) - 12 >= lo) n = n.map(x => x - 12);
+        return n.map(p.fold);
+      },
+      // move the view by whole octaves until m is on screen
+      follow(m){ let l = lo; while (m < l) l -= 12; while (m > l + HI - LO) l += 12; p.shift(l); },
+      names(fn){
+        namer = fn;
+        host.classList.add('named');
+        for (const [m,k] of p.keys){ let n = k.querySelector('.kn'); if (!n){ n = el('span', 'kn'); k.appendChild(n); } n.textContent = fn ? (fn(m) || '') : ''; }
+      },
+      marks(map){
+        lastMarks = map;
+        if (map){ const ms = [...map.keys()], at = p.place(ms); map = new Map(ms.map((m,i) => [at[i], map.get(m)])); }
+        for (const [m,k] of p.keys){ const lab = map && map.get(m); k.classList.toggle('mk', lab != null); k.querySelector('.ml').textContent = lab != null ? lab : ''; } },
+      flash(ms, dur){ p.place(ms).forEach(m => { const k = p.keys.get(m); if (k){ k.classList.add('play'); later(dur, () => k.classList.remove('play')); } }); }
     };
     pianos.push(p);
     return p;
@@ -994,6 +1035,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     ensureAudio(); maybeInitMidi();
     heldCount.set(m, (heldCount.get(m) || 0) + 1);
     playVoice(m, vel);
+    pianos.forEach(p => p.follow(m));
     renderHeld();
     handlers.forEach(h => h(m));
   }
@@ -1010,8 +1052,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     else { const sm = onScreen('pianoScales') ? scaleSpellMap() : null; names = held.map(m => sm ? sm.get(m % 12) : ROOT_MAJ[m % 12]); }
     $('liveNotes').textContent = held.length ? names.join(' ') : 'nothing yet';
     $('liveChord').textContent = id ? sym(id) + ' · ' + QUAL[id.q].w : '';
-    const lit = new Set(held.map(fold));
-    pianos.forEach(p => { for (const [m,k] of p.keys) k.classList.toggle('on', lit.has(m)); });
+    pianos.forEach(p => { const lit = new Set(held.map(p.fold)); for (const [m,k] of p.keys) k.classList.toggle('on', lit.has(m)); });
   }
 
   // computer keys
@@ -1079,7 +1120,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     ivEls.forEach(e => e.classList.remove('cur'));
   }
   function setHold(ms){
-    const keep = new Set(ms.map(fold));
+    const keep = new Set(ms.map(pN.fold));
     for (const [k, e] of pN.keys) e.classList.toggle('hold', keep.has(k));
   }
   handlers.push(m => {
@@ -1127,14 +1168,30 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     $('scaleInfo').textContent = SCALES[sc.type].info + (n === 5 ? ' (5 notes)' : '');
     const wrap = $('scaleSteps'); wrap.textContent = '';
     const full = [...names, names[0]], steps = [...iv.slice(1), 12].map((v,i) => v - iv[i]);
+    const p = sc.practice, at = (i, next) => p < 0 ? '' : i < next ? ' done' : i === next ? ' next' : ' ahead';
     full.forEach((nm,i) => {
-      wrap.appendChild(el('span', 'n' + (sc.practice > i ? ' done' : ''), nm));
-      if (i < n) wrap.appendChild(el('span', 's' + (steps[i] === 1 ? ' h' : steps[i] > 2 ? ' x' : ''), STEP_LABEL[steps[i]] || steps[i]));
+      wrap.appendChild(el('span', 'n' + at(i, p), nm));
+      if (i < n) wrap.appendChild(el('span', 's' + (steps[i] === 1 ? ' h' : steps[i] > 2 ? ' x' : '') + at(i, p - 1), STEP_LABEL[steps[i]] || steps[i]));
     });
     const deg = scaleDegrees(sc.type), marks = new Map();
     scaleNotes().forEach((m,i) => marks.set(m, i === n ? '1' : deg[i]));
     pS.marks(marks);
     const sm = scaleSpellMap(); pS.names(m => sm.get(m % 12));
+    renderPractice();
+  }
+  // keys already played, the one to play next, and the ones still ahead
+  function renderPractice(){
+    for (const k of pS.keys.values()) k.classList.remove('got', 'next', 'ahead');
+    if (sc.practice < 0) return;
+    pS.place(scaleNotes()).forEach((m,i) => {
+      const k = pS.keys.get(m); if (k) k.classList.add(i < sc.practice ? 'got' : i === sc.practice ? 'next' : 'ahead');
+    });
+  }
+  const STEP_WORDS = {1:'a half step', 2:'a whole step', 3:'1½ steps', 4:'two whole steps', 5:'2½ steps'};
+  // "E, a whole step up" for the note the player needs next
+  function nextHint(){
+    const names = spellScale(sc.root, sc.type), iv = [...SCALES[sc.type].iv, 12], i = sc.practice;
+    return i === 0 ? names[0] : `${names[i % names.length]}, ${STEP_WORDS[iv[i] - iv[i-1]]} up`;
   }
   const announce = () => say('scaleStatus', `${scaleLabel()}: ${spellScale(sc.root, sc.type).join(' ')}.`, '');
   $('scaleRoot').addEventListener('change', e => { sc.root = +e.target.value; sc.practice = -1; renderScale(); announce(); });
@@ -1146,7 +1203,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   $('scalePlay').addEventListener('click', () => {
     ensureAudio(); sc.practice = 0; renderScale();
     const names = spellScale(sc.root, sc.type);
-    say('scaleStatus', `Go: start on ${names[0]}, then climb note by note to the next ${names[0]}.`, '');
+    say('scaleStatus', `Go: start on ${names[0]}, then climb note by note to the next ${names[0]}. Watch the step sizes above the keyboard.`, '');
   });
   handlers.push(m => {
     if (sc.practice < 0) return;
@@ -1157,9 +1214,10 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       if (sc.practice === n + 1){
         renderScale(); sc.practice = -1;
         say('scaleStatus', `That's the ${scaleLabel()} scale. Try another scale or starting note.`, 'good');
-      } else { renderScale(); say('scaleStatus', `${names[(sc.practice - 1) % n]}, good. Next: ${names[sc.practice % n]}.`, ''); }
+      } else { renderScale(); say('scaleStatus', `${names[(sc.practice - 1) % n]}, good. Next: ${nextHint()}.`, ''); }
     } else {
-      say('scaleStatus', `That was ${scaleSpellMap().get(m % 12)}. The next note in the scale is ${names[sc.practice % n]}.`, 'warn');
+      renderPractice();
+      say('scaleStatus', `That was ${scaleSpellMap().get(m % 12)}. The next note in the scale is ${nextHint()}.`, 'warn');
     }
   });
   renderScale();
@@ -1353,7 +1411,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     renderChord();
   }
   function markBad(ms){
-    ms.forEach(m => { const k = pC.keys.get(fold(m)); if (k){ k.classList.add('bad'); setTimeout(() => k.classList.remove('bad'), 700); } });
+    ms.forEach(m => { const k = pC.keys.get(pC.fold(m)); if (k){ k.classList.add('bad'); setTimeout(() => k.classList.remove('bad'), 700); } });
   }
   $('wkSkip').addEventListener('click', () => { if (wkIdx < WK.length){ cancelSeq(); wkAdvance(); } });
   $('wkRestart').addEventListener('click', () => { wkIdx = 0; wkBusy = false; saveWk(); renderWorkout(); say('chStatus', 'Starting again from round 1.', ''); });
