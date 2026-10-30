@@ -129,6 +129,12 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 .ccard .rn{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--ink-soft)}
 .ccard .sym{font-family:var(--f-chord);font-weight:700;font-size:26px;line-height:1.15}
 .ccard .fn{font-size:12px;font-weight:600}
+.ccard .qw{font-size:12px;color:var(--ink-soft);margin-bottom:2px}
+.ccard.sel .qw{color:var(--ink)}
+.ccard.play .qw{color:var(--sheet)}
+.ccard .iq{font-size:11px;font-weight:600;color:var(--ink-soft);margin-top:2px}
+.ccard.sel .iq{color:var(--ink)}
+.ccard.play .iq{color:var(--sheet)}
 .ccard .desc{font-size:13px;color:var(--ink-soft);line-height:1.4}
 .ccard.sel{background:var(--marigold)}
 .ccard.sel .rn,.ccard.sel .desc{color:var(--ink)}
@@ -143,7 +149,8 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 .prog .chs{font-family:var(--f-chord);font-weight:700;font-size:20px}
 
 .ivs{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:6px}
-.iv{border:1.5px solid var(--paper-2);border-radius:8px;padding:5px 8px;font-size:13px;line-height:1.3}
+.iv{font:inherit;font-size:13px;line-height:1.3;color:var(--ink);text-align:left;background:none;border:1.5px solid var(--paper-2);border-radius:8px;padding:5px 8px;cursor:pointer}
+.iv:hover{border-color:var(--ink-soft)}
 .iv b{display:block;font-variant-numeric:tabular-nums}
 .iv.cur{border-color:var(--ink);background:var(--marigold)}
 
@@ -357,6 +364,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <a class="mod cur" href="index.html" aria-current="page"><b>Chords</b><small>Notes, scales, chords, harmony</small></a>
       <span class="mod soon" aria-disabled="true"><b>Melodies</b><small>Coming soon</small></span>
       <a class="mod" href="basslines.html"><b>Basslines</b><small>Patterns and grooves</small></a>
+      <a class="mod" href="synth.html"><b>Synth</b><small>How sound is made</small></a>
     </nav>
     <span class="label">Chords page</span>
     <h1>Harmony basics</h1>
@@ -401,15 +409,17 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <p>A <span class="term">scale</span> is a set of seven notes picked out of the twelve, played in order. Which seven you pick follows a fixed pattern of whole steps (W) and half steps (H).</p>
       <p>The <b>major scale</b> follows <b>W W H W W W H</b>. It sounds bright and settled. Start it on C and you get only white keys: C D E F G A B C. The <b>natural minor scale</b> follows <b>W H W W H W W</b> and sounds darker. Start the same pattern on any other key and black keys appear, because the pattern stays the same.</p>
       <p>Each note of a scale has a number called its <span class="term">degree</span>. The first note, 1, is the <span class="term">root</span> or home note. The scale gives a song its <span class="term">key</span>: a song "in C major" mostly uses the notes of the C major scale.</p>
+      <p>Play the white keys from C to C and you get major. Start the same white keys on another note and the steps fall in a different order, giving a new <span class="term">mode</span> with its own mood. From D you get <b>Dorian</b>, from E <b>Phrygian</b>, from F <b>Lydian</b>, from G <b>Mixolydian</b>, from A natural minor (also called Aeolian) and from B <b>Locrian</b>. Major itself is also called Ionian. Each mode can start on any note, so pick one below with any starting note.</p>
       <p>Not every musical culture uses these two scales, or even seven notes. Japanese, Chinese and Indonesian music often use <b>five-note (pentatonic) scales</b> with wider gaps, and Indian ragas and Arabic maqams use their own step patterns. Some traditions, like gamelan tuning or the quarter tones of Arabic music, use pitches that fall between the piano's keys. The Arabic maqams listed below fit the piano's keys exactly. Others, like Rast, Bayati and Saba, need quarter tones, so they're left out. Pick a world scale below to hear its closest piano version.</p>
     </div>
     <div class="tool">
       <div class="controls">
         <label class="field"><span class="label">Start on</span><select id="scaleRoot"></select></label>
         <label class="field"><span class="label">Scale</span><select id="scaleType">
-          <optgroup label="Western"><option value="major" selected>Major</option><option value="minor">Natural minor</option></optgroup>
-          <optgroup label="Japan"><option value="hirajoshi">Hirajōshi</option><option value="insen">In (Miyako-bushi)</option></optgroup>
-          <optgroup label="China"><option value="gong">Gong pentatonic</option></optgroup>
+          <optgroup label="Western"><option value="major" selected>Major (Ionian)</option><option value="minor">Natural minor (Aeolian)</option></optgroup>
+          <optgroup label="Western modes"><option value="dorian">Dorian</option><option value="phrygian">Phrygian</option><option value="lydian">Lydian</option><option value="mixolydian">Mixolydian</option><option value="locrian">Locrian</option></optgroup>
+          <optgroup label="Japan"><option value="hirajoshi">Hirajōshi</option><option value="insen">In (Miyako-bushi)</option><option value="yo">Yo</option></optgroup>
+          <optgroup label="China"><option value="gong">Gong pentatonic</option><option value="yu">Yu pentatonic</option></optgroup>
           <optgroup label="Indonesia (gamelan)"><option value="pelog">Pelog</option><option value="slendro">Slendro</option></optgroup>
           <optgroup label="Arabic (maqam)"><option value="hijaz">Hijaz</option><option value="hijazkar">Hijaz Kar</option><option value="nahawand">Nahawand</option><option value="kurd">Kurd</option><option value="nikriz">Nikriz</option><option value="atharkurd">Athar Kurd</option></optgroup>
           <optgroup label="India (raga)"><option value="bhairav">Bhairav</option><option value="yaman">Yaman</option><option value="bhairavi">Bhairavi</option></optgroup>
@@ -431,6 +441,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
       <p>A <span class="term">chord</span> is three or more notes played together. The most common chord is the <span class="term">triad</span>: take a scale, play degree 1, skip one, play degree 3, skip one, play degree 5. That is stacking intervals called <b>thirds</b>.</p>
       <p>Two kinds of third make the difference between the two main chords. A <b>major third</b> is 4 half steps, a <b>minor third</b> is 3.</p>
       <p>A <b>major</b> chord is a major third with a minor third on top (4 + 3). It sounds bright. A <b>minor</b> chord swaps them (3 + 4) and sounds darker. Only the middle note moves, by a single half step.</p>
+      <p>Intervals have a <b>quality</b> as well as a number. 3rds, 6ths and 7ths come in <b>major</b> and <b>minor</b>. Unisons, 4ths, 5ths and octaves are <b>perfect</b>. Make any interval a half step smaller than minor or perfect and it becomes <b>diminished</b>, a half step bigger than major or perfect and it's <b>augmented</b>. Major and minor chords both sit inside a perfect 5th (7 half steps). Squeeze it to a diminished 5th (6) and you get a diminished chord, stretch it to an augmented 5th (8) for an augmented one.</p>
       <p>You can build chords from any scale the same way, including the world scales from lesson 2: start on a note, skip one, take the next, skip one, take the next. Pick a scale below the Root to see which chords live inside it.</p>
       <p>The notes of a chord can be stacked in any order. These different orders are called <span class="term">inversions</span>: C E G, E G C and G C E are all a C major chord. However you stack them, the chord keeps its name.</p>
     </div>
@@ -447,6 +458,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
         </div>
         <p class="help" id="chScaleInfo"></p>
         <div class="cards" id="chScaleCards"></div>
+        <p class="help">The top line is the chord's Roman numeral in the scale: uppercase for major, lowercase for minor, ° for diminished, + for augmented. The small line at the bottom: the two stacked 3rds, then the interval from the bottom note to the top. P perfect, M major, m minor, d diminished, A augmented. So m3 + M3 · P5 is a minor chord.</p>
       </div>
       <div class="controls">
         <div class="field"><span class="label">Chord</span><span class="big" id="chordName">C major</span></div>
@@ -717,9 +729,16 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   const SCALES = {
     major:{w:'major', iv:[0,2,4,5,7,9,11], names:ROOT_MAJ, info:'The bright, settled scale behind most Western pop and classical music.'},
     minor:{w:'natural minor', iv:[0,2,3,5,7,8,10], names:ROOT_MIN, info:'Darker and more emotional. The home of most melodic techno and trance.'},
+    dorian:{w:'Dorian', iv:[0,2,3,5,7,9,10], names:ROOT_MIN, western:true, info:'Western mode. Minor with a raised 6th, so it sounds hopeful rather than sad. Play the white keys from D to D. Heard in funk, jazz, Celtic folk and deep house.'},
+    phrygian:{w:'Phrygian', iv:[0,1,3,5,7,8,10], names:ROOT_MIN, western:true, info:'Western mode. Minor with a lowered 2nd: the half step just above the root sounds dark and Spanish. Play the white keys from E to E. Loved in metal, flamenco and dark techno.'},
+    lydian:{w:'Lydian', iv:[0,2,4,6,7,9,11], names:ROOT_MAJ, western:true, info:'Western mode. Major with a raised 4th, dreamy and floating. Play the white keys from F to F. A favourite of film and video-game composers.'},
+    mixolydian:{w:'Mixolydian', iv:[0,2,4,5,7,9,10], names:ROOT_MAJ, western:true, info:'Western mode. Major with a lowered 7th: bright but relaxed, without the strong pull back home. Play the white keys from G to G. The sound of classic rock, blues and many folk tunes.'},
+    locrian:{w:'Locrian', iv:[0,1,3,5,6,8,10], names:ROOT_MIN, western:true, info:'Western mode. The darkest one: a lowered 2nd and a lowered 5th make its home chord diminished, so it never feels settled. Play the white keys from B to B. Rare as a home key, but used in metal for tension.'},
     hirajoshi:{w:'Hirajōshi', iv:[0,2,3,7,8], deg:[0,1,2,4,5], names:ROOT_MAJ, info:'Japan. Five notes with wide gaps and two half steps. Calm and haunting, heard in koto music.'},
     insen:{w:'In (Miyako-bushi)', iv:[0,1,5,7,8], deg:[0,1,3,4,5], names:ROOT_MAJ, info:'Japan. Five notes that open with a half step. Dark and dramatic, used in traditional koto and shamisen music.'},
+    yo:{w:'Yo', iv:[0,2,5,7,9], deg:[0,1,3,4,5], names:ROOT_MAJ, info:'Japan. The bright, open scale of folk songs (min\'yō) and festival music, with no half steps. Its darker partner is the In scale. China uses the same notes as its Zhi mode.'},
     gong:{w:'Gong pentatonic', iv:[0,2,4,7,9], deg:[0,1,2,4,5], names:ROOT_MAJ, info:'China. Five notes and no half steps, open and bright. Start it on F♯ and you play only black keys.'},
+    yu:{w:'Yu pentatonic', iv:[0,3,5,7,10], deg:[0,2,3,4,6], names:ROOT_MIN, info:'China. The minor-sounding sister of Gong: the same five notes started from the 6th, like the minor pentatonic in rock and blues. Gentle and wistful, common in Chinese folk melodies.'},
     pelog:{w:'Pelog', iv:[0,1,3,7,8], deg:[0,1,2,4,5], names:ROOT_MAJ, info:'Indonesia (gamelan). Real pelog tuning falls between piano keys and differs from one gamelan to the next, so this is its closest piano version.'},
     slendro:{w:'Slendro', iv:[0,2,5,7,9], deg:[0,1,3,4,5], names:ROOT_MAJ, info:'Indonesia (gamelan). Five almost equal steps, which a piano can only approximate.'},
     hijaz:{w:'Hijaz', iv:[0,1,4,5,7,8,10], names:ROOT_MAJ, info:'Middle East (Arabic maqam). The wide 1½-step jump from the 2nd to the 3rd note gives its famous sound, also heard in Turkish, Jewish and flamenco music. Real maqam tuning can differ slightly from the piano.'},
@@ -737,6 +756,21 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   const MAJ_IV = [0,2,4,5,7,9,11];
   const scaleDegrees = type => { const S = SCALES[type], dg = S.deg || [0,1,2,3,4,5,6]; return S.iv.map((v,i) => { let d = v - MAJ_IV[dg[i]]; return ACC[d] + (dg[i] + 1); }); };
   const IVNAMES = ['unison','minor 2nd','major 2nd','minor 3rd','major 3rd','perfect 4th','tritone','perfect 5th','minor 6th','major 6th','minor 7th','major 7th','octave'];
+  // interval between two spelled notes: the letters give the number (3rd, 5th…), the half steps give the quality,
+  // so E→G♯ is a major 3rd but E→A♭ is a diminished 4th
+  const IV_NUM = ['unison','2nd','3rd','4th','5th','6th','7th'], IV_REF = [0,2,4,5,7,9,11];
+  const IV_Q_PERFECT = {'-2':['doubly diminished','dd'],'-1':['diminished','d'],'0':['perfect','P'],'1':['augmented','A'],'2':['doubly augmented','AA']};
+  const IV_Q_MAJOR = {'-3':['doubly diminished','dd'],'-2':['diminished','d'],'-1':['minor','m'],'0':['major','M'],'1':['augmented','A'],'2':['doubly augmented','AA']};
+  function ivQual(from, to, semis){
+    const n = (LET.indexOf(to[0]) - LET.indexOf(from[0]) + 7) % 7;
+    const q = ([0,3,4].includes(n) ? IV_Q_PERFECT : IV_Q_MAJOR)[semis - IV_REF[n]];
+    return q ? {name:`${q[0]} ${IV_NUM[n]}`, short:q[1] + (n + 1)} : {name:IVNAMES[semis] || `${semis} half steps`, short:String(semis)};
+  }
+  // "E → G: minor 3rd (3 half steps)" for each stacked 3rd, then the outer interval
+  function stackText(tones, v){
+    const a = ivQual(tones[0], tones[1], v[1] - v[0]), b = ivQual(tones[1], tones[2], v[2] - v[1]), o = ivQual(tones[0], tones[2], v[2] - v[0]);
+    return {a, b, o, text:`${tones[0]} → ${tones[1]}: ${a.name} (${v[1] - v[0]} half steps). ${tones[1]} → ${tones[2]}: ${b.name} (${v[2] - v[1]}). Outside, ${tones[0]} → ${tones[2]}: ${o.name} (${v[2] - v[0]}).`};
+  }
   const IVNOTE = ['same note','half step','whole step','','','','','','','','','',''];
   const noteName = m => BOTH[m % 12] + (Math.floor(m/12) - 1);
 
@@ -1113,7 +1147,12 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   const BLACK_BOTH = ['','C♯\nD♭','','D♯\nE♭','','','F♯\nG♭','','G♯\nA♭','','A♯\nB♭',''];
   pN.names(m => { const pc = m % 12; return isWhite(m) ? LET[LETPC.indexOf(pc)] + (pc === 0 ? (Math.floor(m/12) - 1) : '') : BLACK_BOTH[pc]; });
   const ivTable = $('ivTable'); const ivEls = [];
-  IVNAMES.forEach((n,i) => { const d = el('div', 'iv'); const b = el('b', null, i + (i === 1 ? ' half step' : ' half steps')); d.append(b, document.createTextNode(n)); ivTable.appendChild(d); ivEls.push(d); });
+  IVNAMES.forEach((n,i) => {
+    const d = el('button', 'iv'); d.type = 'button'; d.title = `Hear C and the note ${i} half step${i === 1 ? '' : 's'} above it`;
+    const b = el('b', null, i + (i === 1 ? ' half step' : ' half steps')); d.append(b, document.createTextNode(n));
+    d.addEventListener('click', () => playInterval(i));
+    ivTable.appendChild(d); ivEls.push(d);
+  });
   let prevNote = null, notesIdle = 0;
   const IDLE_MS = 1000;
   function resetNotesTool(){
@@ -1125,8 +1164,21 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     ivEls.forEach(e => e.classList.remove('cur'));
   }
   function setHold(ms){
-    const keep = new Set(ms.map(pN.fold));
+    const keep = new Set(pN.place(ms));
     for (const [k, e] of pN.keys) e.classList.toggle('hold', keep.has(k));
+  }
+  // an interval box plays C4, then the note i half steps up, then both together
+  const UP_FROM_C = ['C','D♭','D','E♭','E','F','F♯','G','A♭','A','B♭','B','C'];  // spelled the way each interval name implies
+  function playInterval(i){
+    const lo = 60, hi = 60 + i, top = UP_FROM_C[i];
+    ensureAudio(); cancelSeq(); clearTimeout(notesIdle);
+    tone(lo, 0, 0.5); tone(hi, 0.55, 0.5); tone(lo, 1.15, 1.1); tone(hi, 1.15, 1.1);
+    pN.flash([lo], 500); later(550, () => pN.flash([hi], 500)); later(1150, () => pN.flash([lo, hi], 1100));
+    setHold([lo, hi]); prevNote = hi;
+    $('lastNote').textContent = top + (Math.floor(hi/12) - 1);
+    $('lastIv').textContent = i ? `C → ${top}: ${i} half step${i === 1 ? '' : 's'} up, ${IVNAMES[i]}` : 'C and C again: 0 half steps, unison';
+    ivEls.forEach((e,k) => e.classList.toggle('cur', k === i));
+    notesIdle = setTimeout(resetNotesTool, 3500);
   }
   handlers.push(m => {
     clearTimeout(notesIdle);
@@ -1203,7 +1255,9 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   $('scaleType').addEventListener('change', e => { sc.type = e.target.value; sc.practice = -1; renderScale(); announce(); });
   $('scaleHear').addEventListener('click', () => {
     ensureAudio(); cancelSeq();
-    scaleNotes().forEach((m,i) => { tone(m, i*0.32, 0.3); later(i*320, () => pS.flash([m], 300)); });
+    // up to the octave, then back down to the root
+    const up = scaleNotes(), run = [...up, ...up.slice(0, -1).reverse()];
+    run.forEach((m,i) => { tone(m, i*0.32, i === run.length - 1 ? 0.6 : 0.3); later(i*320, () => pS.flash([m], 300)); });
   });
   $('scalePlay').addEventListener('click', () => {
     ensureAudio(); sc.practice = 0; renderScale();
@@ -1243,7 +1297,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     const opt = $('chordRoot').options; for (let i = 0; i < 12; i++) opt[i].textContent = (ch.q === 'min' ? ROOT_MIN : ROOT_MAJ)[i];
     $('chordName').textContent = `${longName(c)} (${sym(c)})`;
     const third = QUAL[ch.q].iv[1];
-    $('chordBuild').textContent = `${sp[0]} → ${sp[1]}: ${third} half steps (${IVNAMES[third]}), then ${sp[1]} → ${sp[2]}: ${7 - third} half steps (${IVNAMES[7 - third]}).` +
+    $('chordBuild').textContent = stackText(sp, QUAL[ch.q].iv).text +
       (ch.inv ? ` Lowest note is now ${ch.inv === 1 ? sp[1] : sp[2]}, still ${sym(c)}.` : '');
     const v = voicing(), pcs = QUAL[ch.q].iv.map(i => (ch.root + i) % 12), marks = new Map();
     v.forEach(m => { const r = pcs.indexOf(m % 12); marks.set(m, r === 0 ? 'R' : r === 1 ? '3' : '5'); });
@@ -1264,6 +1318,16 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
   $('chScale').innerHTML = $('scaleType').innerHTML;
   $('chScale').value = 'major';
   let chScaleSel = -1;
+  const ROMAN = ['I','II','III','IV','V','VI','VII'];
+  // Roman numeral for a chord on scale degree deg ('1', '♭3', '♯4'…): uppercase major, lowercase minor, ° diminished, + augmented
+  function numeral(deg, q){
+    const acc = String(deg).replace(/\d/g, ''), r = ROMAN[parseInt(String(deg).replace(/\D/g, ''), 10) - 1];
+    if (q === 'min') return acc + r.toLowerCase();
+    if (q === 'dim') return acc + r.toLowerCase() + '°';
+    if (q === 'aug') return acc + r + '+';
+    if (q === 'sus2' || q === 'sus4') return acc + r + QUAL[q].s;
+    return acc + r;
+  }
   function scaleTriads(){
     const type = $('chScale').value, S = SCALES[type], n = S.iv.length, names = spellScale(ch.root, type), deg = scaleDegrees(type);
     const pcs = S.iv.map(v => (ch.root + v) % 12);
@@ -1279,19 +1343,23 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
         slash = id.root !== pcs[idx[0]];
         label = sym(c) + (slash ? '/' + tones[0] : '');
       } else label = tones.join(' ');
-      return {i, idx, v:fitted, tones, degs:idx.map(j => deg[j]), c, label, slash};
+      const num = c ? numeral(deg[pcs.indexOf(id.root)], id.q) : numeral(deg[i]);
+      const qual = c ? QUAL[id.q].w + (slash ? ', inverted' : '') : 'no common name';
+      return {i, idx, v:fitted, tones, degs:idx.map(j => deg[j]), c, label, slash, num, qual};
     });
   }
   function renderScaleChords(){
-    const type = $('chScale').value, S = SCALES[type], world = !['major','minor'].includes(type);
+    const type = $('chScale').value, S = SCALES[type], world = !['major','minor'].includes(type) && !S.western;
     const sname = `${S.names[ch.root]} ${S.w}`;
     $('chScaleInfo').textContent = world
       ? `${sname}: ${spellScale(ch.root, type).join(' ')}. ${S.info} Stacking every other note is a Western way to find chords in it. Many of these traditions are mostly melodic, but film, jazz and electronic producers often harmonize these scales this way.`
-      : `${sname}: ${spellScale(ch.root, type).join(' ')}. Stack every other note and you get the ${S.iv.length} chords of the key.`;
+      : `${sname}: ${spellScale(ch.root, type).join(' ')}. Stack every other note and you get the ${S.iv.length} chords of the ${['major','minor'].includes(type) ? 'key' : 'mode'}.`;
     const w = $('chScaleCards'); w.textContent = '';
     scaleTriads().forEach(t => {
       const b = el('button', 'ccard' + (t.c ? '' : ' odd') + (t.i === chScaleSel ? ' sel' : '')); b.type = 'button';
-      b.append(el('span', 'rn', `on ${t.degs[0]}`), el('span', 'sym', t.label), el('span', 'fn', t.c ? t.tones.join(' · ') : 'no common name'));
+      const st = stackText(t.tones, t.v), iq = el('span', 'iq', `${st.a.short} + ${st.b.short} · ${st.o.short}`);
+      iq.title = `${st.a.name} + ${st.b.name}, ${st.o.name} outside`;
+      b.append(el('span', 'rn', t.slash ? `${t.num} · on ${t.degs[0]}` : t.num), el('span', 'sym', t.label), el('span', 'qw', t.qual), ...(t.c ? [el('span', 'fn', t.tones.join(' · '))] : []), iq);
       b.addEventListener('click', () => pickScaleChord(t.i, true));
       w.appendChild(b);
     });
@@ -1302,10 +1370,9 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
     $('chScaleCards').querySelectorAll('.ccard').forEach((b,k) => b.classList.toggle('sel', k === i));
     const sname = `${S.names[ch.root]} ${S.w}`;
     $('chordName').textContent = t.c ? `${longName(t.c)}${t.slash ? ` over ${t.tones[0]}` : ''} (${t.label})` : t.tones.join(' · ');
-    const d1 = t.v[1] - t.v[0], d2 = t.v[2] - t.v[1];
-    $('chordBuild').textContent = `Notes ${t.degs.join(', ')} of ${sname}: ${t.tones.join(' · ')}. ` + (t.c
-      ? `Together they make ${longName(t.c)}${t.slash ? `, with ${t.tones[0]} at the bottom (an inversion)` : ''}.`
-      : `This stack has no common Western chord name: ${t.tones[0]} → ${t.tones[1]} is ${d1} half steps (${IVNAMES[d1]}), ${t.tones[1]} → ${t.tones[2]} is ${d2} (${IVNAMES[d2]}). Its colour comes straight from the scale.`);
+    $('chordBuild').textContent = `Notes ${t.degs.join(', ')} of ${sname}: ${t.tones.join(' · ')}. ${stackText(t.tones, t.v).text} ` + (t.c
+      ? `Together they make ${longName(t.c)}${t.slash ? `, with ${t.tones[0]} at the bottom (an inversion)` : ''}: the ${t.num} chord of ${sname}.`
+      : `This stack has no common Western chord name. Its colour comes straight from the scale.`);
     const marks = new Map(); t.v.forEach((m,k) => marks.set(m, t.degs[k])); pC.marks(marks);
     const names = spellScale(ch.root, type), cm = spellMap(names, S.iv.map(v => (ch.root + v) % 12)); pC.names(m => cm.get(m % 12));
     if (sound){
