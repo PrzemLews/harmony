@@ -49,7 +49,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .dot.blink{transform:scale(1.7);background:var(--marigold)!important}
 
 main{max-width:1320px;margin:0 auto;padding-block:28px 56px}
-.hero{display:grid;gap:14px;padding-bottom:28px}
+.hero{display:grid;gap:12px;padding-bottom:18px}
+.hero-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 22px}
 .modnav{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:14px;margin-bottom:4px;border-bottom:2px solid var(--ink)}
 .mod{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 150px;max-width:240px;padding:9px 14px;border:1.5px solid var(--ink);border-radius:10px;background:var(--sheet);color:var(--ink);text-decoration:none;line-height:1.25}
 .mod b{font-size:15px}
@@ -58,15 +59,16 @@ a.mod:hover{background:var(--paper-2)}
 .mod.cur{background:var(--ink);color:var(--sheet);box-shadow:3px 3px 0 var(--marigold)}
 .mod.cur small{color:var(--paper-2)}
 .mod.soon{border-style:dashed;border-color:var(--ink-soft);background:transparent;color:var(--ink-soft);cursor:default}
-h1{font-family:var(--f-display);font-weight:400;font-size:clamp(36px,6vw,60px);line-height:1;margin:0;text-wrap:balance}
-.lead{font-size:18px;max-width:62ch;margin:0}
-.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.toc button{font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer}
-.toc b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--marigold);border:1.5px solid var(--ink);font-size:12px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,4vw,44px);line-height:1;margin:0;text-wrap:balance}
+.lead{font-size:16px;max-width:78ch;margin:0;flex:1 1 360px}
+.toc{display:flex;flex-wrap:wrap;gap:6px}
+.toc button{font:inherit;padding:0;border:0;background:none;cursor:pointer;border-radius:50%}
+.toc b{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--sheet);border:1.5px solid var(--ink);font-size:13px;color:var(--ink)}
 .toc button.done b{background:var(--leaf);color:var(--sheet);border-color:var(--leaf)}
+.toc button[aria-current="step"] b{background:var(--marigold);box-shadow:0 0 0 3px var(--ink)}
 .progress{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px;font-weight:600}
 .segs{display:flex;gap:4px}
-.segs i{width:34px;height:8px;border-radius:4px;background:var(--paper-2);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.segs i{width:24px;height:8px;border-radius:4px;background:var(--paper-2);box-shadow:inset 0 0 0 1.5px var(--ink)}
 .segs i.on{background:var(--leaf);box-shadow:none}
 .done-toggle{margin-left:auto;font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer;white-space:nowrap}
 .done-toggle .box{flex:none;width:18px;height:18px;border-radius:5px;border:2px solid var(--ink);background:var(--sheet);position:relative}
@@ -75,13 +77,21 @@ h1{font-family:var(--f-display);font-weight:400;font-size:clamp(36px,6vw,60px);l
 .done-toggle[aria-pressed="true"] .box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;border:solid var(--leaf);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
 .lesson.is-done .num{background:var(--leaf);color:var(--sheet)}
 
-/* lessons left, synth panel right */
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 540px;gap:28px;align-items:start}
-.lessons{min-width:0}
-.lesson{display:grid;gap:18px;padding-block:32px;border-top:2px solid var(--ink);scroll-margin-top:90px}
-.lesson-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
-.num{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--marigold);border:2px solid var(--ink);font-family:var(--f-display);font-size:22px}
-h2{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,3.6vw,34px);line-height:1.1;margin:0;text-wrap:balance}
+/* a narrow guide on the left, one lesson at a time; the synth takes the rest */
+.studio{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:20px;align-items:start}
+.studio.no-guide{grid-template-columns:minmax(0,1fr)}
+.guide{position:sticky;top:70px;max-height:calc(100vh - 82px);display:flex;flex-direction:column;min-width:0;background:var(--sheet);border:2px solid var(--ink);border-radius:16px;overflow:hidden}
+.guide-head{display:grid;gap:10px;padding:12px 14px;background:var(--paper);border-bottom:2px solid var(--ink)}
+.guide-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.guide-body{overflow:auto;padding:16px;overscroll-behavior:contain;font-size:15px}
+.guide-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border-top:1.5px solid var(--paper-2)}
+.lesson{display:none;gap:14px}
+.lesson.active{display:grid}
+.lesson-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.num{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--marigold);border:2px solid var(--ink);font-family:var(--f-display);font-size:18px}
+h2{font-family:var(--f-display);font-weight:400;font-size:24px;line-height:1.1;margin:0;text-wrap:balance}
+.lesson .done-toggle{margin-left:0}
+.narrow-only{display:none}
 h3{font-size:15px;margin:0}
 .prose{max-width:68ch}
 .prose p{margin:0 0 .8em}
@@ -113,7 +123,7 @@ button:focus-visible,select:focus-visible,a:focus-visible,[role=slider]:focus-vi
 kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;border:1.5px solid var(--ink-soft);border-bottom-width:3px;border-radius:5px;color:var(--ink);background:var(--sheet)}
 
 /* recipe cards */
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .ccard{font:inherit;color:var(--ink);text-align:left;border:1.5px solid var(--ink);border-radius:10px;background:var(--sheet);padding:9px 12px;display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:0}
 .ccard .rn{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--ink-soft)}
 .ccard .sym{font-family:var(--f-chord);font-weight:700;font-size:22px;line-height:1.15}
@@ -122,15 +132,18 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;padding:1px 6px;bor
 .ccard.sel .rn,.ccard.sel .desc{color:var(--ink)}
 
 /* the synth panel */
-.panel{position:sticky;top:74px;max-height:calc(100vh - 86px);overflow:auto;background:var(--sheet);border:2px solid var(--ink);border-radius:16px;box-shadow:6px 6px 0 var(--ink);padding:14px;display:flex;flex-direction:column;gap:12px;margin-top:32px;overscroll-behavior:contain}
+.rig{background:var(--sheet);border:2px solid var(--ink);border-radius:16px;box-shadow:6px 6px 0 var(--ink);padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.screens{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.deck{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:14px;align-items:start}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
 .panel-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}
-.panel-head h2{font-size:26px}
+.panel-head h2{font-size:28px}
 .view{display:flex;flex-direction:column;gap:4px}
 .view-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px;background:var(--paper)}
-#scope{height:130px}
-#spec{height:110px}
-#envc{height:86px}
+#scope{height:240px}
+#spec{height:240px}
+#envc{height:130px}
 .cap{font-size:12px;color:var(--ink-soft);line-height:1.4;margin:0}
 .groups{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;font-weight:600;color:var(--ink-soft)}
 .groups span{display:inline-flex;align-items:center;gap:5px}
@@ -140,22 +153,31 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
 [data-g=env]{--g:var(--coral)}
 [data-g=lfo]{--g:#5B6FB0}
 [data-g=out]{--g:var(--ink-soft)}
+[data-g=fx]{--g:#8B55B8}
 
 .hw{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;padding:12px;border-radius:12px;background:var(--paper);border:1.5px solid var(--ink)}
-.knobs{display:grid;grid-template-columns:repeat(4,minmax(64px,1fr));gap:8px 6px;flex:1 1 280px}
+.knobs{display:grid;grid-template-columns:repeat(4,minmax(64px,1fr));gap:10px 6px;flex:1 1 300px}
 .faders{display:grid;grid-template-columns:repeat(4,minmax(52px,1fr));gap:6px;flex:0 1 220px}
 .ctl{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;text-align:center;border-radius:10px;padding:4px 2px}
 .ctl .slot{font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--ink-soft);white-space:nowrap}
 .fdr .slot{letter-spacing:0}
 .ctl .nm{font-size:12px;font-weight:700;line-height:1.2}
 .ctl .vl{font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink-soft);white-space:nowrap}
-.knob{width:54px;height:54px;border-radius:50%;cursor:ns-resize;touch-action:none}
-.knob svg{display:block;width:54px;height:54px}
+.knob{width:62px;height:62px;border-radius:50%;cursor:ns-resize;touch-action:none}
+.knob svg{display:block;width:62px;height:62px}
 .knob .trk{fill:none;stroke:var(--paper-2);stroke-width:5;stroke-linecap:round}
 .knob .arc{fill:none;stroke:var(--g);stroke-width:5;stroke-linecap:round}
 .knob .capc{fill:var(--sheet);stroke:var(--ink);stroke-width:1.5}
 .knob .ptr{stroke:var(--ink);stroke-width:2.5;stroke-linecap:round}
-.fader{position:relative;width:30px;height:104px;cursor:ns-resize;touch-action:none;border-radius:8px}
+.wave-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;border-radius:12px}
+.wave-row.focus{background:rgba(242,169,0,.28);box-shadow:0 0 0 6px rgba(242,169,0,.28),0 0 0 8px var(--marigold)}
+.waves{display:grid;grid-template-columns:repeat(4,minmax(0,84px));gap:8px;flex:1 1 280px}
+.waves button{font:inherit;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 4px 7px;border:1.5px solid var(--ink);border-radius:10px;background:var(--sheet);color:var(--ink);cursor:pointer;min-width:0}
+.waves button svg{width:44px;height:26px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.waves button:hover{background:var(--paper-2)}
+.waves button[aria-checked="true"]{background:var(--marigold);box-shadow:inset 0 -3px 0 var(--ink)}
+.waves button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.fader{position:relative;width:30px;height:128px;cursor:ns-resize;touch-action:none;border-radius:8px}
 .fader::before{content:"";position:absolute;left:13px;top:4px;bottom:4px;width:4px;border-radius:2px;background:var(--paper-2)}
 .fader .fill{position:absolute;left:13px;bottom:4px;width:4px;border-radius:2px;background:var(--g)}
 .fader .thumb{position:absolute;left:2px;width:26px;height:14px;margin-bottom:-7px;border-radius:4px;background:var(--sheet);border:1.5px solid var(--ink);box-shadow:inset 0 -3px 0 var(--g)}
@@ -163,9 +185,15 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
 .ctl.touch .knob,.ctl.touch .fader{box-shadow:0 0 0 3px var(--g)}
 .ctl.learn{background:var(--ink);color:var(--sheet)}
 .ctl.learn .slot,.ctl.learn .vl{color:var(--paper-2)}
-.panel.learning .ctl{cursor:pointer}
-.panel.learning .ctl:hover{background:rgba(30,42,69,.08)}
+#panel.learning .ctl{cursor:pointer}
+#panel.learning .ctl:hover{background:rgba(30,42,69,.08)}
 .lfo-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.hw[data-bank=synth] #fxKnobs,.hw[data-bank=fx] #knobs{display:none}
+.hw[data-bank=fx]{box-shadow:inset 0 0 0 2px #8B55B8}
+#knobBank button[data-v=fx][aria-pressed="true"]{background:#8B55B8;border-color:#8B55B8}
+.fx-on{font-size:11px;font-weight:700;margin-left:4px;padding:0 5px;border-radius:6px;background:#8B55B8;color:#fff}
+.fx-on:empty{display:none}
+#knobBank button[aria-pressed="true"] .fx-on{background:var(--sheet);color:#8B55B8}
 
 .pads{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .pad{font:inherit;display:flex;flex-direction:column;align-items:flex-start;gap:0;padding:6px 9px;border-radius:9px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer;text-align:left;min-width:0}
@@ -175,7 +203,7 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
 .pad.cur small{color:var(--ink)}
 
 .piano-wrap{overflow-x:auto;padding-bottom:2px}
-.piano{position:relative;height:96px;min-width:420px;user-select:none;-webkit-user-select:none;touch-action:none}
+.piano{position:relative;height:110px;min-width:420px;user-select:none;-webkit-user-select:none;touch-action:none}
 .key{position:absolute;top:0;border:1.5px solid var(--ink);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;font-size:10px;font-weight:700;color:var(--ink-soft)}
 .key.w{height:100%;background:var(--sheet);border-radius:0 0 7px 7px;z-index:1;padding-bottom:4px}
 .key.b{height:60%;background:var(--ink);border-radius:0 0 5px 5px;z-index:2}
@@ -184,20 +212,31 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
 .midi-box{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border:1.5px dashed var(--ink-soft);border-radius:12px}
 .midi-box .row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
 
-.finale{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding:22px;border:2px solid var(--ink);border-radius:14px;background:var(--marigold);box-shadow:6px 6px 0 var(--ink);margin-top:8px}
-.finale h2{font-size:28px}
+.finale{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;padding:16px;border:2px solid var(--ink);border-radius:14px;background:var(--marigold);box-shadow:6px 6px 0 var(--ink);margin-top:8px}
+.finale h2{font-size:22px}
 .finale p{margin:4px 0 0;max-width:56ch}
 .finale .btn{background:var(--sheet)}
 
-@media (max-width:1100px){
-  .layout{grid-template-columns:minmax(0,1fr)}
-  .panel{position:static;max-height:none;order:-1;margin-top:0}
+@media (max-width:1280px){
+  .screens{grid-template-columns:1fr}
+  #scope,#spec{height:190px}
+}
+@media (max-width:1180px){
+  .deck{grid-template-columns:1fr}
+}
+@media (max-width:940px){
+  .studio,.studio.no-guide{grid-template-columns:minmax(0,1fr)}
+  .guide{position:static;max-height:none;order:2}
+  .guide-body{overflow:visible}
+  .narrow-only{display:inline-flex}
+  .studio.no-guide .narrow-only{display:none}
 }
 @media (max-width:820px){
   .top{position:static}
-  .lesson{scroll-margin-top:12px}
 }
 @media (max-width:480px){
+  .rig{padding:12px}
+  #scope,#spec{height:150px}
   .knobs{grid-template-columns:repeat(4,minmax(0,1fr))}
   .knob,.knob svg{width:46px;height:46px}
   .pads{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -229,181 +268,205 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
       <a class="mod" href="basslines.html"><b>Basslines</b><small>Patterns and grooves</small></a>
       <a class="mod cur" href="synth.html" aria-current="page"><b>Synth</b><small>How sound is made</small></a>
     </nav>
-    <span class="label">Synth page</span>
-    <h1>Sound synthesis</h1>
-    <p class="lead">Every synth sound is built from the same few parts: an oscillator makes a wave, a filter shapes its tone, envelopes shape it over time and an LFO adds movement. Seven short lessons, one synth to play with, and screens that show what each knob does to the sound.</p>
-    <div class="toc" id="toc">
-      <button type="button" data-go="sound"><b>1</b>What sound is</button>
-      <button type="button" data-go="osc"><b>2</b>Oscillators</button>
-      <button type="button" data-go="filter"><b>3</b>The filter</button>
-      <button type="button" data-go="env"><b>4</b>Envelopes</button>
-      <button type="button" data-go="fenv"><b>5</b>Filter envelope</button>
-      <button type="button" data-go="lfo"><b>6</b>LFO</button>
-      <button type="button" data-go="recipes"><b>7</b>Recipes</button>
+    <div class="hero-row">
+      <h1>Sound synthesis</h1>
+      <p class="lead">An oscillator makes a wave, a filter shapes its tone, envelopes shape it over time and an LFO adds movement. Play the synth, and follow the guide to learn what each part does.</p>
     </div>
-    <div class="progress" aria-live="polite">
-      <div class="segs" id="progSegs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <span id="progText">0 of 7 lessons done</span>
-    </div>
-    <p class="help"><b>Arturia MiniLab 3:</b> plug it in and press the MIDI button. Knobs 1–8 and faders 1–4 work the synth controls with the same numbers, pads 1–8 load the presets, the mod strip adds vibrato and the pitch strip bends notes. Computer keys work too: <kbd>A</kbd> to <kbd>;</kbd> are white keys, <kbd>W</kbd> <kbd>E</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>O</kbd> <kbd>P</kbd> black keys, <kbd>Z</kbd> / <kbd>X</kbd> shift the octave. On screen, drag a knob up or down, or double-click it to reset.</p>
   </section>
 
-  <div class="layout">
-    <div class="lessons">
+  <div class="studio" id="studio">
+    <aside class="guide" id="guide" aria-label="Guide">
+      <div class="guide-head">
+        <div class="guide-top"><span class="label">Guide</span><button class="pill" type="button" id="hideGuide"><span>Hide guide</span></button></div>
+        <div class="toc" id="toc">
+          <button type="button" data-go="sound" title="What sound is"><b>1</b></button>
+          <button type="button" data-go="osc" title="Oscillators"><b>2</b></button>
+          <button type="button" data-go="filter" title="The filter"><b>3</b></button>
+          <button type="button" data-go="env" title="Envelopes"><b>4</b></button>
+          <button type="button" data-go="fenv" title="Filter envelope"><b>5</b></button>
+          <button type="button" data-go="lfo" title="LFO"><b>6</b></button>
+          <button type="button" data-go="recipes" title="Recipes"><b>7</b></button>
+        </div>
+        <div class="progress" aria-live="polite">
+          <div class="segs" id="progSegs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <span id="progText">0 of 7 lessons done</span>
+        </div>
+      </div>
+      <div class="guide-body" id="guideBody">
+    <!-- 1 -->
+    <section class="lesson" id="sound" data-lesson="sound">
+      <div class="lesson-head"><span class="num">1</span><h2>What sound is</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+      <div class="prose">
+        <p>Sound is air pressure moving back and forth very quickly. A speaker cone pushes the air, pulls it back, pushes again, and your ear picks up the wobble. The <span class="term">oscilloscope</span> at the top of the synth draws that wobble: time runs left to right, and the line goes up when the air is pushed and down when it's pulled.</p>
+        <p>The wave repeats the same shape over and over. How many times it repeats in one second is its <span class="term">frequency</span>, measured in hertz (Hz), and that's what you hear as <span class="term">pitch</span>. The A above middle C repeats 440 times a second, so it's 440 Hz. Go up an octave and the frequency doubles: the next A is 880 Hz. Play a low note and a high note and watch the waves squeeze together.</p>
+        <p>How tall the wave is, its <span class="term">amplitude</span>, is how loud it sounds. Its <b>shape</b> is the third thing, and it decides the tone, or <span class="term">timbre</span>. That's what the next lesson is about.</p>
+      </div>
+      <div class="tryit">
+        <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="sound">Set up the synth</button></div>
+        <ul class="checks" data-tasks="sound"></ul>
+      </div>
+    </section>
 
-      <!-- 1 -->
-      <section class="lesson" id="sound" data-lesson="sound">
-        <div class="lesson-head"><span class="num">1</span><h2>What sound is</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
-        <div class="prose">
-          <p>Sound is air pressure moving back and forth very quickly. A speaker cone pushes the air, pulls it back, pushes again, and your ear picks up the wobble. The <span class="term">oscilloscope</span> at the top of the synth draws that wobble: time runs left to right, and the line goes up when the air is pushed and down when it's pulled.</p>
-          <p>The wave repeats the same shape over and over. How many times it repeats in one second is its <span class="term">frequency</span>, measured in hertz (Hz), and that's what you hear as <span class="term">pitch</span>. The A above middle C repeats 440 times a second, so it's 440 Hz. Go up an octave and the frequency doubles: the next A is 880 Hz. Play a low note and a high note and watch the waves squeeze together.</p>
-          <p>How tall the wave is, its <span class="term">amplitude</span>, is how loud it sounds. Its <b>shape</b> is the third thing, and it decides the tone, or <span class="term">timbre</span>. That's what the next lesson is about.</p>
-        </div>
-        <div class="tryit">
-          <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="sound">Set up the synth</button></div>
-          <ul class="checks" data-tasks="sound"></ul>
-        </div>
-      </section>
+    <!-- 2 -->
+    <section class="lesson" id="osc" data-lesson="osc">
+      <div class="lesson-head"><span class="num">2</span><h2>Oscillators and waveforms</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+      <div class="prose">
+        <p>The <span class="term">oscillator</span> is the part of a synth that makes the raw wave. Classic synths offer four shapes, picked here with the <span class="knobref">Wave</span> buttons above the knobs:</p>
+        <ul>
+          <li><b>Sine</b>: smooth and pure, like a whistle or a flute. It's the simplest sound there is.</li>
+          <li><b>Triangle</b>: still soft, a little brighter.</li>
+          <li><b>Saw</b>: bright and buzzy, the starting point for strings, brass and most dance leads and basses.</li>
+          <li><b>Square</b>: hollow and woody, like a clarinet or an old video game.</li>
+        </ul>
+        <p>Why do they sound different at the same pitch? Every wave except the sine is really a stack of sine waves: the main one, called the <span class="term">fundamental</span>, plus quieter ones at 2, 3, 4… times its frequency, called <span class="term">harmonics</span>. The <b>spectrum</b> view under the oscilloscope shows them as peaks. A sine has one peak. A saw has every harmonic, so it looks like a staircase going down to the right. A square has only the odd ones.</p>
+        <p><span class="knobref">F3 Detune</span> adds a second oscillator, slightly out of tune with the first. The two drift in and out of step, which you hear as a slow shimmer that makes the sound wider and thicker.</p>
+      </div>
+      <div class="tryit">
+        <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="osc">Set up the synth</button></div>
+        <ul class="checks" data-tasks="osc"></ul>
+      </div>
+    </section>
 
-      <!-- 2 -->
-      <section class="lesson" id="osc" data-lesson="osc">
-        <div class="lesson-head"><span class="num">2</span><h2>Oscillators and waveforms</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
-        <div class="prose">
-          <p>The <span class="term">oscillator</span> is the part of a synth that makes the raw wave. Classic synths offer four shapes, picked here with <span class="knobref">K1 Wave</span>:</p>
-          <ul>
-            <li><b>Sine</b>: smooth and pure, like a whistle or a flute. It's the simplest sound there is.</li>
-            <li><b>Triangle</b>: still soft, a little brighter.</li>
-            <li><b>Saw</b>: bright and buzzy, the starting point for strings, brass and most dance leads and basses.</li>
-            <li><b>Square</b>: hollow and woody, like a clarinet or an old video game.</li>
-          </ul>
-          <p>Why do they sound different at the same pitch? Every wave except the sine is really a stack of sine waves: the main one, called the <span class="term">fundamental</span>, plus quieter ones at 2, 3, 4… times its frequency, called <span class="term">harmonics</span>. The <b>spectrum</b> view under the oscilloscope shows them as peaks. A sine has one peak. A saw has every harmonic, so it looks like a staircase going down to the right. A square has only the odd ones.</p>
-          <p><span class="knobref">F3 Detune</span> adds a second oscillator, slightly out of tune with the first. The two drift in and out of step, which you hear as a slow shimmer that makes the sound wider and thicker.</p>
-        </div>
-        <div class="tryit">
-          <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="osc">Set up the synth</button></div>
-          <ul class="checks" data-tasks="osc"></ul>
-        </div>
-      </section>
+    <!-- 3 -->
+    <section class="lesson" id="filter" data-lesson="filter">
+      <div class="lesson-head"><span class="num">3</span><h2>The filter</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+      <div class="prose">
+        <p>Most synths work by <span class="term">subtractive synthesis</span>: start with a wave full of harmonics, like a saw, then carve away what you don't want. The tool for carving is the <span class="term">filter</span>.</p>
+        <p>This synth has a <span class="term">low-pass filter</span>: it lets low frequencies pass and turns down the high ones. <span class="knobref">K2 Cutoff</span> sets where that starts. Turn it down and the sound gets darker and more muffled, like music heard through a wall. Turn it up and it opens back up. In the spectrum view, the green line is the filter: harmonics under its flat part pass, and where the line drops, they get quieter.</p>
+        <p><span class="knobref">K1 Filter type</span> changes what the filter keeps. <b>Low-pass</b> is the classic one, and the one this lesson uses. <b>High-pass</b> does the opposite: it removes the lows and leaves a thin, airy sound. <b>Band-pass</b> keeps only a band around the cutoff, like a voice on the phone. <b>Notch</b> cuts out just that band and keeps the rest. Watch the green line change shape with each one.</p>
+        <p><span class="knobref">K3 Resonance</span> boosts the frequencies right at the cutoff, so a bump appears on the green line. A little adds bite. A lot makes the filter whistle, and sweeping the cutoff then gives the classic "wow" sound of acid and dance music.</p>
+      </div>
+      <div class="tryit">
+        <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="filter">Set up the synth</button></div>
+        <ul class="checks" data-tasks="filter"></ul>
+      </div>
+    </section>
 
-      <!-- 3 -->
-      <section class="lesson" id="filter" data-lesson="filter">
-        <div class="lesson-head"><span class="num">3</span><h2>The filter</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
-        <div class="prose">
-          <p>Most synths work by <span class="term">subtractive synthesis</span>: start with a wave full of harmonics, like a saw, then carve away what you don't want. The tool for carving is the <span class="term">filter</span>.</p>
-          <p>This synth has a <span class="term">low-pass filter</span>: it lets low frequencies pass and turns down the high ones. <span class="knobref">K2 Cutoff</span> sets where that starts. Turn it down and the sound gets darker and more muffled, like music heard through a wall. Turn it up and it opens back up. In the spectrum view, the green line is the filter: harmonics under its flat part pass, and where the line drops, they get quieter.</p>
-          <p><span class="knobref">K3 Resonance</span> boosts the frequencies right at the cutoff, so a bump appears on the green line. A little adds bite. A lot makes the filter whistle, and sweeping the cutoff then gives the classic "wow" sound of acid and dance music.</p>
-        </div>
-        <div class="tryit">
-          <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="filter">Set up the synth</button></div>
-          <ul class="checks" data-tasks="filter"></ul>
-        </div>
-      </section>
+    <!-- 4 -->
+    <section class="lesson" id="env" data-lesson="env">
+      <div class="lesson-head"><span class="num">4</span><h2>Envelopes: ADSR</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+      <div class="prose">
+        <p>Real sounds change over time. A piano note starts with a hit and fades away. A violin can swell in slowly. An organ stays at the same volume until you let go. The <span class="term">envelope</span> gives a synth note that shape, in four stages:</p>
+        <ul>
+          <li><span class="knobref">K5 Attack</span>: how long the note takes to reach full volume after you press the key.</li>
+          <li><span class="knobref">K6 Decay</span>: how long it then takes to fall to the sustain level.</li>
+          <li><span class="knobref">K7 Sustain</span>: the level the note holds while you keep the key down. It's a level, not a time.</li>
+          <li><span class="knobref">K8 Release</span>: how long it takes to fade out after you let go.</li>
+        </ul>
+        <p>The envelope graph in the synth panel draws the shape, and a dot follows your note through the stages as it plays.</p>
+      </div>
+      <div class="tryit">
+        <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="env">Set up the synth</button></div>
+        <ul class="checks" data-tasks="env"></ul>
+      </div>
+    </section>
 
-      <!-- 4 -->
-      <section class="lesson" id="env" data-lesson="env">
-        <div class="lesson-head"><span class="num">4</span><h2>Envelopes: ADSR</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
-        <div class="prose">
-          <p>Real sounds change over time. A piano note starts with a hit and fades away. A violin can swell in slowly. An organ stays at the same volume until you let go. The <span class="term">envelope</span> gives a synth note that shape, in four stages:</p>
-          <ul>
-            <li><span class="knobref">K5 Attack</span>: how long the note takes to reach full volume after you press the key.</li>
-            <li><span class="knobref">K6 Decay</span>: how long it then takes to fall to the sustain level.</li>
-            <li><span class="knobref">K7 Sustain</span>: the level the note holds while you keep the key down. It's a level, not a time.</li>
-            <li><span class="knobref">K8 Release</span>: how long it takes to fade out after you let go.</li>
-          </ul>
-          <p>The envelope graph in the synth panel draws the shape, and a dot follows your note through the stages as it plays.</p>
-        </div>
-        <div class="tryit">
-          <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="env">Set up the synth</button></div>
-          <ul class="checks" data-tasks="env"></ul>
-        </div>
-      </section>
+    <!-- 5 -->
+    <section class="lesson" id="fenv" data-lesson="fenv">
+      <div class="lesson-head"><span class="num">5</span><h2>The filter envelope</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+      <div class="prose">
+        <p>Acoustic instruments are brightest right when a note starts, then get darker as it fades. A synth copies that by letting the envelope move the filter too. <span class="knobref">K4 Env amount</span> sets how far the filter opens on each note, up to four octaves above the cutoff. In this synth the filter follows the same ADSR as the volume.</p>
+        <p>Set the cutoff low, turn up the env amount and every note starts bright and closes down: the "pluck" and "squelch" behind countless basslines. Watch the green filter line jump up and slide back down in the spectrum view as you play.</p>
+      </div>
+      <div class="tryit">
+        <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="fenv">Set up the synth</button></div>
+        <ul class="checks" data-tasks="fenv"></ul>
+      </div>
+    </section>
 
-      <!-- 5 -->
-      <section class="lesson" id="fenv" data-lesson="fenv">
-        <div class="lesson-head"><span class="num">5</span><h2>The filter envelope</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
-        <div class="prose">
-          <p>Acoustic instruments are brightest right when a note starts, then get darker as it fades. A synth copies that by letting the envelope move the filter too. <span class="knobref">K4 Env amount</span> sets how far the filter opens on each note, up to four octaves above the cutoff. In this synth the filter follows the same ADSR as the volume.</p>
-          <p>Set the cutoff low, turn up the env amount and every note starts bright and closes down: the "pluck" and "squelch" behind countless basslines. Watch the green filter line jump up and slide back down in the spectrum view as you play.</p>
-        </div>
-        <div class="tryit">
-          <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="fenv">Set up the synth</button></div>
-          <ul class="checks" data-tasks="fenv"></ul>
-        </div>
-      </section>
+    <!-- 6 -->
+    <section class="lesson" id="lfo" data-lesson="lfo">
+      <div class="lesson-head"><span class="num">6</span><h2>LFO: movement</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+      <div class="prose">
+        <p>An <span class="term">LFO</span>, a low-frequency oscillator, is a wave too slow to hear, under about 20 times a second. Instead of making sound, it moves another control up and down for you. <span class="knobref">F1 LFO rate</span> sets how fast, <span class="knobref">F2 LFO depth</span> how far. What it moves changes the effect completely:</p>
+        <ul>
+          <li><b>Filter</b>: the tone opens and closes, from a slow sweep to the dubstep "wobble".</li>
+          <li><b>Pitch</b>: the note bends slightly up and down. That's <span class="term">vibrato</span>, like a singer's.</li>
+          <li><b>Volume</b>: the sound pulses louder and quieter. That's <span class="term">tremolo</span>.</li>
+        </ul>
+        <p>Choose the target with the "LFO to" buttons in the synth panel. On the MiniLab 3, the <b>mod strip</b> adds a separate vibrato as you slide it up, the way players add expression live.</p>
+      </div>
+      <div class="tryit">
+        <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="lfo">Set up the synth</button></div>
+        <ul class="checks" data-tasks="lfo"></ul>
+      </div>
+    </section>
 
-      <!-- 6 -->
-      <section class="lesson" id="lfo" data-lesson="lfo">
-        <div class="lesson-head"><span class="num">6</span><h2>LFO: movement</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
-        <div class="prose">
-          <p>An <span class="term">LFO</span>, a low-frequency oscillator, is a wave too slow to hear, under about 20 times a second. Instead of making sound, it moves another control up and down for you. <span class="knobref">F1 LFO rate</span> sets how fast, <span class="knobref">F2 LFO depth</span> how far. What it moves changes the effect completely:</p>
-          <ul>
-            <li><b>Filter</b>: the tone opens and closes, from a slow sweep to the dubstep "wobble".</li>
-            <li><b>Pitch</b>: the note bends slightly up and down. That's <span class="term">vibrato</span>, like a singer's.</li>
-            <li><b>Volume</b>: the sound pulses louder and quieter. That's <span class="term">tremolo</span>.</li>
-          </ul>
-          <p>Choose the target with the "LFO to" buttons in the synth panel. On the MiniLab 3, the <b>mod strip</b> adds a separate vibrato as you slide it up, the way players add expression live.</p>
+    <!-- 7 -->
+    <section class="lesson" id="recipes" data-lesson="recipes">
+      <div class="lesson-head"><span class="num">7</span><h2>Recipes</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
+      <div class="prose">
+        <p>Now put it together. Each preset below is just a setting of the twelve controls you already know, so read its recipe, load it and look at where the knobs sit. Then change one thing at a time and listen. On the MiniLab 3, pads 1–8 load the same presets.</p>
+      </div>
+      <div class="cards" id="recipeCards"></div>
+      <div class="tryit">
+        <div class="tryit-head"><h3>Try it</h3></div>
+        <ul class="checks" data-tasks="recipes"></ul>
+      </div>
+      <div class="finale">
+        <div>
+          <h2 id="finTitle">Take it to a real synth</h2>
+          <p>Every synth has these same parts, often with more of each. Your MiniLab 3 comes with Arturia's Analog Lab: open a preset there and look for the oscillator, filter, envelope and LFO pages. You'll recognise them.</p>
         </div>
-        <div class="tryit">
-          <div class="tryit-head"><h3>Try it</h3><button class="btn ghost small" type="button" data-setup="lfo">Set up the synth</button></div>
-          <ul class="checks" data-tasks="lfo"></ul>
-        </div>
-      </section>
-
-      <!-- 7 -->
-      <section class="lesson" id="recipes" data-lesson="recipes">
-        <div class="lesson-head"><span class="num">7</span><h2>Recipes</h2><button class="done-toggle" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span class="t">Mark as done</span></button></div>
-        <div class="prose">
-          <p>Now put it together. Each preset below is just a setting of the twelve controls you already know, so read its recipe, load it and look at where the knobs sit. Then change one thing at a time and listen. On the MiniLab 3, pads 1–8 load the same presets.</p>
-        </div>
-        <div class="cards" id="recipeCards"></div>
-        <div class="tryit">
-          <div class="tryit-head"><h3>Try it</h3></div>
-          <ul class="checks" data-tasks="recipes"></ul>
-        </div>
-        <div class="finale">
-          <div>
-            <h2 id="finTitle">Take it to a real synth</h2>
-            <p>Every synth has these same parts, often with more of each. Your MiniLab 3 comes with Arturia's Analog Lab: open a preset there and look for the oscillator, filter, envelope and LFO pages. You'll recognise them.</p>
-          </div>
-          <a class="btn" href="basslines.html">Basslines lessons</a>
-        </div>
-      </section>
-    </div>
+        <a class="btn" href="basslines.html">Basslines lessons</a>
+      </div>
+    </section>
+      </div>
+      <div class="guide-foot">
+        <button class="pill" type="button" id="prevLesson"><span>← Previous</span></button>
+        <span class="help" id="lessonPos"></span>
+        <button class="pill" type="button" id="nextLesson"><span>Next →</span></button>
+      </div>
+    </aside>
 
     <!-- the synth -->
-    <aside class="panel" id="panel" aria-label="Synth">
+    <section class="rig" id="panel" aria-label="Synth">
       <div class="panel-head">
         <h2>Synth</h2>
-        <div class="groups"><span data-g="osc"><i></i>Oscillator</span><span data-g="flt"><i></i>Filter</span><span data-g="env"><i></i>Envelope</span><span data-g="lfo"><i></i>LFO</span><span data-g="out"><i></i>Output</span></div>
+        <div class="groups"><span data-g="osc"><i></i>Oscillator</span><span data-g="flt"><i></i>Filter</span><span data-g="env"><i></i>Envelope</span><span data-g="lfo"><i></i>LFO</span><span data-g="out"><i></i>Output</span><span data-g="fx"><i></i>Effects</span></div>
+        <button class="pill" type="button" id="showGuide" hidden><span>Show guide</span></button>
+        <button class="pill narrow-only" type="button" id="jumpGuide"><span>Guide ↓</span></button>
       </div>
-      <div class="view">
-        <div class="view-head"><span class="label">Oscilloscope: the wave</span></div>
-        <canvas id="scope" aria-label="Oscilloscope showing the sound wave"></canvas>
-        <p class="cap" id="scopeCap">Play a note to see its wave.</p>
+      <div class="screens">
+        <div class="view">
+          <div class="view-head"><span class="label">Oscilloscope: the wave</span></div>
+          <canvas id="scope" aria-label="Oscilloscope showing the sound wave"></canvas>
+          <p class="cap" id="scopeCap">Play a note to see its wave.</p>
+        </div>
+        <div class="view">
+          <div class="view-head"><span class="label">Spectrum: its harmonics</span><span class="label" style="color:var(--leaf)">— filter</span></div>
+          <canvas id="spec" aria-label="Spectrum of the sound with the filter curve"></canvas>
+          <p class="cap">Each peak is one harmonic, low on the left, high on the right. The green line is the filter.</p>
+        </div>
       </div>
-      <div class="view">
-        <div class="view-head"><span class="label">Spectrum: its harmonics</span><span class="label" style="color:var(--leaf)">— filter</span></div>
-        <canvas id="spec" aria-label="Spectrum of the sound with the filter curve"></canvas>
-        <p class="cap">Each peak is one harmonic, low on the left, high on the right. The green line is the filter.</p>
-      </div>
-      <div class="hw" id="hw">
-        <div class="knobs" id="knobs"></div>
-        <div class="faders" id="faders"></div>
-      </div>
-      <div class="lfo-row"><span class="label">LFO to</span><div class="seg" id="lfoTarget"><button type="button" data-v="filter" aria-pressed="true">Filter</button><button type="button" data-v="pitch" aria-pressed="false">Pitch</button><button type="button" data-v="volume" aria-pressed="false">Volume</button></div></div>
-      <p class="status" id="tip" aria-live="polite">Turn a knob to see what it does.</p>
-      <div class="view">
-        <div class="view-head"><span class="label">Envelope: the note over time</span></div>
-        <canvas id="envc" aria-label="Envelope shape"></canvas>
-      </div>
-      <div class="view">
-        <span class="label">Presets (pads 1–8)</span>
-        <div class="pads" id="pads"></div>
+      <div class="deck">
+        <div class="side">
+          <div class="wave-row" id="waveRow" data-g="osc" data-id="wave"><span class="label">Wave</span><div class="waves" id="waves" role="radiogroup" aria-label="Oscillator wave"></div></div>
+          <div class="lfo-row"><span class="label">Knobs 1–8</span><div class="seg" id="knobBank"><button type="button" data-v="synth" aria-pressed="true">Synth</button><button type="button" data-v="fx" aria-pressed="false">Effects<span class="fx-on" id="fxOn"></span></button></div></div>
+          <div class="hw" id="hw" data-bank="synth">
+            <div class="knobs" id="knobs"></div>
+            <div class="knobs" id="fxKnobs"></div>
+            <div class="faders" id="faders"></div>
+          </div>
+          <div class="lfo-row"><span class="label">LFO to</span><div class="seg" id="lfoTarget"><button type="button" data-v="filter" aria-pressed="true">Filter</button><button type="button" data-v="pitch" aria-pressed="false">Pitch</button><button type="button" data-v="volume" aria-pressed="false">Volume</button></div></div>
+          <p class="status" id="tip" aria-live="polite">Turn a knob to see what it does.</p>
+        </div>
+        <div class="side">
+          <div class="view">
+            <div class="view-head"><span class="label">Envelope: the note over time</span></div>
+            <canvas id="envc" aria-label="Envelope shape"></canvas>
+          </div>
+          <div class="view">
+            <span class="label">Presets (pads 1–8)</span>
+            <div class="pads" id="pads"></div>
+          </div>
+        </div>
       </div>
       <div class="piano-wrap"><div class="piano" id="piano"></div></div>
       <div class="midi-box">
         <div class="row"><span class="label">Controller</span><span class="help" id="ctrlName">No MIDI controller connected yet.</span></div>
-        <p class="help">Factory MiniLab 3 settings: knobs 1–8 send CC 74, 71, 76, 77, 93, 18, 19, 16 and faders 1–4 send CC 82, 83, 85, 17. Knobs pick up from the value on screen and turn it up or down from there; faders jump to where they sit. If a knob does nothing, press Learn, click a control here, then turn the knob you want for it. If you've set your MiniLab's knobs to a relative mode in Arturia's MIDI Control Center, choose Relative.</p>
+        <p class="help">Factory MiniLab 3 settings: knobs 1–8 send CC 74, 71, 76, 77, 93, 18, 19, 16 and faders 1–4 send CC 82, 83, 85, 17. Knobs pick up from the value on screen and turn it up or down from there; faders jump to where they sit. Pads 1–8 load the presets, the mod strip adds vibrato and the pitch strip bends notes. If a knob does nothing, press Learn, click a control here, then turn the knob you want for it. The Synth / Effects switch above the knobs changes what knobs 1–8 do, on screen and on the controller. If you've set your MiniLab's knobs to a relative mode in Arturia's MIDI Control Center, choose Relative.</p>
+        <p class="help">Computer keys: <kbd>A</kbd> to <kbd>;</kbd> are white keys, <kbd>W</kbd> <kbd>E</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>O</kbd> <kbd>P</kbd> black keys, <kbd>Z</kbd> / <kbd>X</kbd> shift the octave. On screen, drag a knob up or down, or double-click it to reset.</p>
         <div class="row">
           <button class="pill" type="button" id="learnBtn" aria-pressed="false"><span>Learn</span></button>
           <button class="pill" type="button" id="resetMap"><span>Reset to MiniLab 3 map</span></button>
@@ -411,7 +474,7 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
           <div class="seg" id="knobMode"><button type="button" data-v="abs" aria-pressed="true">Absolute</button><button type="button" data-v="rel" aria-pressed="false">Relative</button></div>
         </div>
       </div>
-    </aside>
+    </section>
   </div>
 </main>
 
@@ -435,6 +498,8 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
   // ---------- Controls: every value is 0..1, mapped to a real unit here ----------
   const WAVES = ['sine','triangle','sawtooth','square'], WAVE_NAMES = ['Sine','Triangle','Saw','Square'];
   const waveOf = v => Math.min(3, Math.floor(v * 4));
+  const FTYPES = ['lowpass','bandpass','highpass','notch'], FTYPE_NAMES = ['Low-pass','Band-pass','High-pass','Notch'];
+  const ftOf = v => Math.min(3, Math.floor(v * 4));
   const expMap = (lo, hi) => v => lo * Math.pow(hi / lo, v);
   const cutHz = expMap(40, 18000), atkS = expMap(0.002, 3), decS = expMap(0.01, 3), relS = expMap(0.01, 4), lfoHz = expMap(0.1, 15);
   const resQ = v => 0.5 + v * v * 19.5;
@@ -443,8 +508,8 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
   const fmtHz = f => f < 1000 ? Math.round(f) + ' Hz' : (f / 1000).toFixed(f < 10000 ? 2 : 1) + ' kHz';
   const pct = v => Math.round(v * 100) + '%';
   const CTRLS = [
-    {id:'wave', kind:'knob', slot:'K1', cc:74, g:'osc', name:'Wave', def:0.625, fmt:v => WAVE_NAMES[waveOf(v)],
-      tip:'The oscillator\'s shape. Sine is pure, triangle soft, saw bright and buzzy, square hollow. Brighter waves have more harmonics: watch the spectrum.'},
+    {id:'ftype', kind:'knob', slot:'K1', cc:74, g:'flt', name:'Filter type', def:0.125, fmt:v => FTYPE_NAMES[ftOf(v)],
+      tip:'What the filter keeps. Low-pass keeps the lows, high-pass the highs, band-pass only a band around the cutoff, and notch cuts out just that band. Watch the green line change shape.'},
     {id:'cut', kind:'knob', slot:'K2', cc:71, g:'flt', name:'Cutoff', def:0.75, fmt:v => fmtHz(cutHz(v)),
       tip:'The low-pass filter lets frequencies below the cutoff through and turns down the ones above. Lower it for a darker, more muffled sound.'},
     {id:'res', kind:'knob', slot:'K3', cc:76, g:'flt', name:'Resonance', def:0.1, fmt:v => 'Q ' + resQ(v).toFixed(1),
@@ -468,11 +533,35 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
     {id:'vol', kind:'fader', slot:'F4', cc:17, g:'out', name:'Volume', def:0.7, fmt:pct,
       tip:'Overall output level.'}
   ];
-  const C = Object.fromEntries(CTRLS.map(c => [c.id, c]));
-  const P = Object.fromEntries(CTRLS.map(c => [c.id, c.def]));
+  // the effects bank: knobs 1–8 can switch over to these, one amount each. 0 is off.
+  const fxOff = v => v < 0.005;
+  const FX = [
+    {id:'drive', name:'Drive',
+      tip:'Drive pushes the wave into a soft clipper that flattens its peaks. The scope shows the wave squaring off and the spectrum fills with new harmonics. Think gritty bass and rock guitar.'},
+    {id:'crush', name:'Bit crush',
+      tip:'Bit crush rounds the wave to fewer volume steps, like old 8-bit game consoles. Watch the scope turn into stairs. Harsh, digital fizz.'},
+    {id:'ring', name:'Ring mod',
+      tip:'Ring modulation multiplies the sound by a 440 Hz sine. Every harmonic splits into two new tones, so notes turn metallic and bell-like. The spectrum shows the new peaks.'},
+    {id:'chorus', name:'Chorus',
+      tip:'Chorus mixes in copies of the sound delayed by a few milliseconds that drift slowly, like several players at once. Wider and shimmery.'},
+    {id:'phaser', name:'Phaser',
+      tip:'A phaser mixes the sound with a phase-shifted copy. Where they cancel, dips appear, and they sweep up and down. Watch the dips move in the spectrum.'},
+    {id:'flanger', name:'Flanger',
+      tip:'A flanger is a very short delay, a few milliseconds, swept slowly and fed back into itself. It makes a jet-plane whoosh.'},
+    {id:'delay', name:'Delay',
+      tip:'Delay repeats the sound as echoes 300 ms apart, bouncing between left and right, each one quieter and darker. Turning it up gives louder echoes that last longer. Play short notes to hear them.'},
+    {id:'reverb', name:'Reverb',
+      tip:'Reverb adds the sound of a room: thousands of reflections blurred into a 3-second tail. More reverb puts the sound further away. Play short notes and listen to what\'s left after you let go.'}
+  ].map((f, i) => ({...f, kind:'knob', g:'fx', slot:CTRLS[i].slot, of:CTRLS[i].id, def:0, fmt:v => fxOff(v) ? 'Off' : pct(v)}));
+  // the oscillator wave is picked with buttons, not a knob
+  const WAVE = {id:'wave', ui:'waves', g:'osc', name:'Wave', def:0.625, fmt:v => WAVE_NAMES[waveOf(v)],
+    tip:'The oscillator\'s shape. Sine is pure, triangle soft, saw bright and buzzy, square hollow. Brighter waves have more harmonics: watch the spectrum.'};
+  const ALL = [...CTRLS, ...FX], PARAMS = [WAVE, ...ALL];
+  const C = Object.fromEntries(PARAMS.map(c => [c.id, c]));
+  const P = Object.fromEntries(PARAMS.map(c => [c.id, c.def]));
   let lfoTarget = 'filter';
   const stored = load('hb-synth-patch', null);
-  if (stored && stored.v){ CTRLS.forEach(c => { if (typeof stored.v[c.id] === 'number') P[c.id] = clamp(stored.v[c.id], 0, 1); }); if (['filter','pitch','volume'].includes(stored.lfo)) lfoTarget = stored.lfo; }
+  if (stored && stored.v){ PARAMS.forEach(c => { if (typeof stored.v[c.id] === 'number') P[c.id] = clamp(stored.v[c.id], 0, 1); }); if (['filter','pitch','volume'].includes(stored.lfo)) lfoTarget = stored.lfo; }
   let saveT = 0;
   const savePatch = () => { clearTimeout(saveT); saveT = setTimeout(() => save('hb-synth-patch', {v:P, lfo:lfoTarget}), 300); };
 
@@ -488,7 +577,7 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
         bus = AC.createGain(); bus.gain.value = 0.22;
         trem = AC.createGain(); out = AC.createGain();
         const comp = AC.createDynamicsCompressor(); comp.threshold.value = -12; comp.ratio.value = 4;
-        bus.connect(trem); trem.connect(out); out.connect(comp); comp.connect(AC.destination);
+        bus.connect(trem); buildFx(trem, out); out.connect(comp); comp.connect(AC.destination);
         analyser = AC.createAnalyser(); analyser.fftSize = 8192; analyser.smoothingTimeConstant = 0.7; comp.connect(analyser);
         lfo = AC.createOscillator(); lfo.type = 'sine';
         lfoF = AC.createGain(); lfoP = AC.createGain(); lfoA = AC.createGain();
@@ -499,7 +588,7 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
         // the mod strip adds its own vibrato, independent of the LFO
         const vib = AC.createOscillator(); vib.frequency.value = 5.5; vibG = AC.createGain(); vibG.gain.value = 0; vib.connect(vibG); vib.start();
         refF = AC.createBiquadFilter(); refF.type = 'lowpass';
-        applyGlobal();
+        applyGlobal(); FX.forEach(f => applyFx(f.id));
       } catch(e){ AC = null; }
     }
     if (AC && AC.state === 'suspended') AC.resume().catch(() => {});
@@ -513,6 +602,73 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
     lfoP.gain.setTargetAtTime(lfoTarget === 'pitch' ? d * LFO_PITCH_CENTS : 0, t, 0.02);
     lfoA.gain.setTargetAtTime(lfoTarget === 'volume' ? d * 0.5 : 0, t, 0.02);
     trem.gain.setTargetAtTime(lfoTarget === 'volume' ? 1 - d * 0.5 : 1, t, 0.02);
+  }
+  // ---------- Effects: a chain of stages between the synth and the output, each a dry and a wet path ----------
+  let fxNodes = null;
+  const LINEAR = new Float32Array([-1, 1]), DELAY_S = 0.3, REVERB_WET = 3;
+  const curve = fn => { const c = new Float32Array(4096); for (let i = 0; i < 4096; i++) c[i] = fn(i / 2047.5 - 1); return c; };
+  const driveCurve = v => { const k = 0.01 + v * 30, n = Math.tanh(k); return curve(x => Math.tanh(k * x) / n); };
+  const crushCurve = v => { const q = Math.round(128 * Math.pow(1 / 16, v)); return curve(x => Math.round(x * q) / q); };
+  // a room's echo pattern: noise that fades by 60 dB and gets darker as it goes, after a short gap
+  function impulse(sec){
+    const sr = AC.sampleRate, pre = Math.round(sr * 0.02), n = Math.round(sr * sec), b = AC.createBuffer(2, n, sr);
+    for (let ch = 0; ch < 2; ch++){
+      const d = b.getChannelData(ch); let lp = 0;
+      for (let i = pre; i < n; i++){
+        const u = (i - pre) / (n - pre);
+        lp += (0.9 - 0.8 * u) * ((Math.random() * 2 - 1) - lp);
+        d[i] = lp * Math.exp(-6.9 * u);
+      }
+    }
+    return b;
+  }
+  function buildFx(src, dst){
+    const gain = v => { const n = AC.createGain(); n.gain.value = v; return n; };
+    const lfoTo = (f, amt, params) => { const o = AC.createOscillator(); o.frequency.value = f; const a = gain(amt); o.connect(a); params.forEach(p => a.connect(p)); o.start(); };
+    fxNodes = {};
+    let into = src;
+    FX.forEach(f => {
+      const s = {dry:gain(1), wet:gain(0), o:gain(1)};
+      into.connect(s.dry); s.dry.connect(s.o); s.wet.connect(s.o);
+      if (f.id === 'drive' || f.id === 'crush'){
+        s.shp = AC.createWaveShaper(); s.shp.curve = LINEAR; if (f.id === 'drive') s.shp.oversample = '4x';
+        into.connect(s.shp); s.shp.connect(s.wet);
+      } else if (f.id === 'ring'){
+        const rm = gain(0); lfoTo(440, 1, [rm.gain]); into.connect(rm); rm.connect(s.wet);
+      } else if (f.id === 'chorus'){
+        [[0.018, 0.7], [0.027, 0.53]].forEach(([t, r]) => { const d = AC.createDelay(0.1); d.delayTime.value = t; lfoTo(r, 0.004, [d.delayTime]); into.connect(d); d.connect(s.wet); });
+      } else if (f.id === 'phaser'){
+        const aps = []; let p = into;
+        for (let k = 0; k < 4; k++){ const ap = AC.createBiquadFilter(); ap.type = 'allpass'; ap.frequency.value = 700; ap.Q.value = 0.6; p.connect(ap); p = ap; aps.push(ap); }
+        lfoTo(0.35, 2000, aps.map(a => a.detune)); p.connect(s.wet);
+      } else if (f.id === 'flanger'){
+        const d = AC.createDelay(0.05), fb = gain(0.65); d.delayTime.value = 0.005; lfoTo(0.18, 0.002, [d.delayTime]);
+        into.connect(d); d.connect(fb); fb.connect(d); d.connect(s.wet);
+      } else if (f.id === 'delay'){
+        // ping-pong: echoes alternate left and right, each a little darker than the last
+        const dL = AC.createDelay(1), dR = AC.createDelay(1), lp = AC.createBiquadFilter(), m = AC.createChannelMerger(2), mono = gain(1);
+        mono.channelCount = 1; mono.channelCountMode = 'explicit';
+        dL.delayTime.value = dR.delayTime.value = DELAY_S; lp.type = 'lowpass'; lp.frequency.value = 3200; s.fb = gain(0.4);
+        into.connect(mono); mono.connect(dL); dL.connect(dR); dR.connect(lp); lp.connect(s.fb); s.fb.connect(dL);
+        dL.connect(m, 0, 0); dR.connect(m, 0, 1); m.connect(s.wet);
+      } else if (f.id === 'reverb'){
+        const cv = AC.createConvolver(); cv.buffer = impulse(3.2); into.connect(cv); cv.connect(s.wet);
+      }
+      fxNodes[f.id] = s; into = s.o;
+    });
+    into.connect(dst);
+  }
+  function applyFx(id){
+    if (!fxNodes) return;
+    const s = fxNodes[id], v = P[id], on = !fxOff(v), t = AC.currentTime;
+    const mix = (dry, wet) => { s.dry.gain.setTargetAtTime(dry, t, 0.03); s.wet.gain.setTargetAtTime(wet, t, 0.03); };
+    if (id === 'drive'){ s.shp.curve = on ? driveCurve(v) : LINEAR; mix(on ? 0 : 1, on ? 1 / (1 + v * 3) : 0); }
+    else if (id === 'crush'){ s.shp.curve = on ? crushCurve(v) : LINEAR; mix(on ? 0 : 1, on ? 1 : 0); }
+    else if (id === 'ring') mix(1 - v, v);
+    else if (id === 'chorus') mix(1, v * 0.8);
+    else if (id === 'phaser' || id === 'flanger') mix(1 - v * 0.5, v * 0.5);
+    else if (id === 'delay'){ s.fb.gain.setTargetAtTime(0.35 + v * 0.4, t, 0.03); mix(1, v * 1.1); }
+    else if (id === 'reverb') mix(1 - v * 0.25, v * REVERB_WET);
   }
   // freeze an AudioParam at its current value so a new ramp can start from there
   function hold(param, t){
@@ -528,7 +684,7 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
     o1.type = o2.type = type; o1.frequency.value = o2.frequency.value = f0;
     o1.detune.value = bend - dt / 2; o2.detune.value = bend + dt / 2;
     mix.gain.value = 0.5;
-    flt.type = 'lowpass'; flt.frequency.value = cutHz(P.cut); flt.Q.value = resQ(P.res);
+    flt.type = FTYPES[ftOf(P.ftype)]; flt.frequency.value = cutHz(P.cut); flt.Q.value = resQ(P.res);
     const A = atkS(P.atk), D = decS(P.dec), S = P.sus, E = P.env * ENV_OCT * 1200, peak = 0.35 + 0.65 * (vel == null ? 0.8 : vel);
     amp.gain.setValueAtTime(0, t); amp.gain.linearRampToValueAtTime(peak, t + A); amp.gain.setTargetAtTime(peak * S, t + A, D / 4);
     flt.detune.setValueAtTime(0, t); flt.detune.linearRampToValueAtTime(E, t + A); flt.detune.setTargetAtTime(E * S, t + A, D / 4);
@@ -566,9 +722,11 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
     if (!AC) return;
     const t = AC.currentTime;
     if (id === 'wave'){ const type = WAVES[waveOf(P.wave)]; voices.forEach(v => { v.o1.type = v.o2.type = type; }); }
+    else if (id === 'ftype'){ const type = FTYPES[ftOf(P.ftype)]; voices.forEach(v => { v.flt.type = type; }); }
     else if (id === 'cut') voices.forEach(v => v.flt.frequency.setTargetAtTime(cutHz(P.cut), t, 0.015));
     else if (id === 'res') voices.forEach(v => v.flt.Q.setTargetAtTime(resQ(P.res), t, 0.015));
     else if (id === 'det') applyDetune();
+    else if (C[id].g === 'fx') applyFx(id);
     else if (id === 'sus' || id === 'env'){
       voices.forEach(v => {
         if (v.tRel != null || t < v.t0 + v.A) return;
@@ -670,8 +828,31 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
     w.addEventListener('click', () => { if (learning) pickLearn(c.id); });
     return w;
   }
+  // the oscillator shape is a choice of four, so it gets buttons with a drawing of each wave
+  const WAVE_ICONS = ['M1 7 C3.7 -1.5 8.3 -1.5 11 7 S18.3 15.5 21 7', 'M1 7 L6 1.5 L16 12.5 L21 7', 'M1 12.5 L11 1.5 V12.5 L21 1.5 V12.5', 'M1 12.5 V1.5 H11 V12.5 H21 V1.5'];
+  function buildWaves(){
+    const host = $('waves'), set = i => { ensureAudio(); setValue('wave', (i + 0.5) / WAVES.length, 'ui'); };
+    const btns = WAVES.map((_, i) => {
+      const b = el('button'); b.type = 'button'; b.setAttribute('role', 'radio');
+      const svg = svgEl('svg', {viewBox:'0 0 22 14', 'aria-hidden':'true'}); svg.appendChild(svgEl('path', {d:WAVE_ICONS[i]}));
+      b.append(svg, el('span', null, WAVE_NAMES[i]));
+      b.addEventListener('click', () => set(i));
+      b.addEventListener('keydown', e => {
+        const step = {ArrowRight:1, ArrowDown:1, ArrowLeft:-1, ArrowUp:-1}[e.key]; if (step == null) return;
+        e.preventDefault(); e.stopPropagation();
+        const j = (waveOf(P.wave) + step + WAVES.length) % WAVES.length; set(j); btns[j].focus();
+      });
+      host.appendChild(b); return b;
+    });
+    ctlEls.wave = {w:$('waveRow'), parts:{btns}};
+  }
   function renderCtl(id){
     const c = C[id], e = ctlEls[id], v = P[id];
+    if (c.ui === 'waves'){
+      const cur = waveOf(v);
+      e.parts.btns.forEach((b, i) => { b.setAttribute('aria-checked', String(i === cur)); b.tabIndex = i === cur ? 0 : -1; });
+      return;
+    }
     if (c.kind === 'knob'){
       const a = A0 + (A1 - A0) * v, [x, y] = polar(a, 14);
       e.parts.arc.setAttribute('d', v > 0.003 ? arcPath(A0, a, 23) : '');
@@ -685,7 +866,7 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
     e.s.setAttribute('aria-valuenow', String(Math.round(v * 100))); e.s.setAttribute('aria-valuetext', txt);
   }
   function renderSlots(){
-    CTRLS.forEach(c => { const cc = Object.keys(ccMap).find(k => ccMap[k] === c.id); ctlEls[c.id].slot.textContent = c.slot + (cc != null ? ` · CC ${cc}` : ''); });
+    ALL.forEach(c => { const cc = Object.keys(ccMap).find(k => ccMap[k] === (c.of || c.id)); ctlEls[c.id].slot.textContent = c.slot + (cc != null ? ` · CC ${cc}` : ''); });
   }
   const touchT = {};
   function setValue(id, v, src){
@@ -695,10 +876,24 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
     $('tip').innerHTML = ''; const b = el('b', null, `${C[id].name}: ${C[id].fmt(v)}. `); $('tip').append(b, document.createTextNode(C[id].tip));
     if (src === 'midi'){ const w = ctlEls[id].w; w.classList.add('touch'); clearTimeout(touchT[id]); touchT[id] = setTimeout(() => w.classList.remove('touch'), 220); }
     if (heldCount.size){ const s = sweeps.get(id) || {lo:v, hi:v}; s.lo = Math.min(s.lo, v); s.hi = Math.max(s.hi, v); sweeps.set(id, s); }
+    if (C[id].g === 'fx') renderFxOn();
     emit({type:'param', id});
   }
   CTRLS.forEach(c => (c.kind === 'knob' ? $('knobs') : $('faders')).appendChild(buildCtl(c)));
-  CTRLS.forEach(c => renderCtl(c.id));
+  FX.forEach(c => $('fxKnobs').appendChild(buildCtl(c)));
+  buildWaves();
+  PARAMS.forEach(c => renderCtl(c.id));
+  // which set knobs 1–8 work, on screen and on the controller. Both keep their settings.
+  let bank = load('hb-synth-bank', 'synth') === 'fx' ? 'fx' : 'synth';
+  function renderFxOn(){ const n = FX.filter(f => !fxOff(P[f.id])).length; $('fxOn').textContent = n ? `${n} on` : ''; }
+  function setBank(b, src){
+    bank = b; $('hw').dataset.bank = b; setSeg($('knobBank'), b); save('hb-synth-bank', b);
+    if (src) $('tip').textContent = b === 'fx'
+      ? 'Knobs 1–8 now add effects to the sound. Turn one up to add it; at 0 it\'s off. Switch back to Synth any time: both sets keep their settings.'
+      : 'Knobs 1–8 are back on the synth. Your effects stay on until you turn them down.';
+  }
+  setBank(bank); renderFxOn();
+  onSeg($('knobBank'), v => setBank(v, 'ui'));
   setSeg($('lfoTarget'), lfoTarget);
   onSeg($('lfoTarget'), v => { lfoTarget = v; applyGlobal(); savePatch(); emit({type:'param', id:'lfoTarget'});
     $('tip').textContent = {filter:'LFO to Filter: the LFO opens and closes the filter. Slow is a sweep, fast is a wobble.', pitch:'LFO to Pitch: the LFO bends the pitch up and down. Small and around 5 Hz is vibrato.', volume:'LFO to Volume: the LFO makes the sound pulse louder and quieter. That\'s tremolo.'}[v]; });
@@ -726,9 +921,9 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
   function loadPreset(i, src){
     const p = PRESETS[i]; if (!p) return;
     ensureAudio();
-    CTRLS.forEach(c => { P[c.id] = p.v[c.id]; renderCtl(c.id); });
+    [WAVE, ...CTRLS].forEach(c => { P[c.id] = p.v[c.id] ?? c.def; renderCtl(c.id); });
     lfoTarget = p.lfo; setSeg($('lfoTarget'), lfoTarget);
-    applyGlobal(); applyParam('cut'); applyParam('res'); applyParam('wave'); applyDetune(); savePatch();
+    applyGlobal(); applyParam('ftype'); applyParam('cut'); applyParam('res'); applyParam('wave'); applyDetune(); savePatch();
     curPreset = p.id; renderPads();
     $('tip').textContent = `${p.name} preset: ${p.recipe}`;
     emit({type:'preset', id:p.id, src});
@@ -781,13 +976,13 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
   function drawScope(){
     const {ctx, w, h} = prep($('scope'));
     ctx.strokeStyle = PAPER2; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
-    if (!AC || !voices.length){
-      ctx.strokeStyle = SOFT; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
-      return;
-    }
+    const flat = () => { ctx.strokeStyle = SOFT; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke(); };
+    if (!AC || !lastVoice) return flat();
     if (!tbuf) tbuf = new Float32Array(analyser.fftSize);
     analyser.getFloatTimeDomainData(tbuf);
-    const low = Math.min(...voices.map(v => v.m)), period = AC.sampleRate / hz(low);
+    // after the notes end, keep drawing while echoes and reverb are still sounding
+    if (!voices.length && tbuf.every(x => Math.abs(x) < 0.001)) return flat();
+    const low = voices.length ? Math.min(...voices.map(v => v.m)) : lastVoice.m, period = AC.sampleRate / hz(low);
     const win = clamp(Math.round(period * 3), 160, tbuf.length / 2);
     // start the drawing on a rising zero crossing so the wave stands still
     let start = 0;
@@ -815,7 +1010,7 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
     const {ctx, w, h} = prep($('spec'));
     ctx.fillStyle = SOFT; ctx.font = '600 10px ' + col('--f-body'); ctx.textBaseline = 'bottom';
     [100, 1000, 10000].forEach(f => { const x = fx(f, w); ctx.fillStyle = PAPER2; ctx.fillRect(x, 0, 1, h); ctx.fillStyle = SOFT; ctx.fillText(f >= 1000 ? f / 1000 + 'k' : String(f), x + 3, h - 2); });
-    if (AC && voices.length){
+    if (AC){  // keeps drawing after the notes end, so echo and reverb tails show
       if (!fbuf) fbuf = new Float32Array(analyser.frequencyBinCount);
       analyser.getFloatFrequencyData(fbuf);
       const binHz = AC.sampleRate / analyser.fftSize;
@@ -831,10 +1026,15 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
     // the filter's response, moving with the envelope and the LFO
     const fc = effectiveCutoff();
     if (refF){
-      refF.frequency.value = fc; refF.Q.value = resQ(P.res);
+      refF.type = FTYPES[ftOf(P.ftype)]; refF.frequency.value = fc; refF.Q.value = resQ(P.res);
       refF.getFrequencyResponse(curveF, curveM, curveP);
     } else {
-      for (let i = 0; i < 160; i++){ const r = curveF[i] / fc; curveM[i] = 1 / Math.sqrt(1 + Math.pow(r, 4)); }
+      // before the audio starts: rough shapes of the four types
+      const ft = ftOf(P.ftype);
+      for (let i = 0; i < 160; i++){
+        const r = curveF[i] / fc, b = (r - 1 / r) * 2;
+        curveM[i] = [1 / Math.sqrt(1 + Math.pow(r, 4)), 1 / Math.sqrt(1 + b * b), 1 / Math.sqrt(1 + Math.pow(r, -4)), Math.abs(b) / Math.sqrt(1 + b * b)][ft];
+      }
     }
     const dy = db => h * 0.3 - db / 36 * (h * 0.7);
     ctx.strokeStyle = LEAF; ctx.lineWidth = 2.5; ctx.beginPath();
@@ -911,6 +1111,8 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
   // ---------- MIDI ----------
   const DEFAULT_MAP = Object.fromEntries(CTRLS.map(c => [c.cc, c.id]));
   let ccMap = load('hb-synth-map', null) || {...DEFAULT_MAP};
+  // maps saved before knob 1 became the filter type had the wave there
+  Object.keys(ccMap).forEach(k => { if (ccMap[k] === 'wave') ccMap[k] = 'ftype'; if (!CTRLS.some(c => c.id === ccMap[k])) delete ccMap[k]; });
   let knobMode = load('hb-synth-knobmode', 'abs');
   setSeg($('knobMode'), knobMode);
   onSeg($('knobMode'), v => { knobMode = v; save('hb-synth-knobmode', v); });
@@ -935,13 +1137,15 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
   $('resetMap').addEventListener('click', () => { ccMap = {...DEFAULT_MAP}; save('hb-synth-map', ccMap); renderSlots(); $('tip').textContent = 'Controls are back on the MiniLab 3 factory map.'; });
   function onCC(cc, val){
     if (learning && learnId){
-      Object.keys(ccMap).forEach(k => { if (ccMap[k] === learnId || +k === cc) delete ccMap[k]; });
-      ccMap[cc] = learnId; save('hb-synth-map', ccMap); renderSlots();
+      const target = C[learnId].of || learnId;  // an effect knob learns for its synth slot, so both banks follow
+      Object.keys(ccMap).forEach(k => { if (ccMap[k] === target || +k === cc) delete ccMap[k]; });
+      ccMap[cc] = target; save('hb-synth-map', ccMap); renderSlots();
       const name = C[learnId].name; stopLearn(`CC ${cc} now works ${name}.`); return;
     }
     if (cc === 1){ if (vibG) vibG.gain.setTargetAtTime(val / 127 * 60, AC.currentTime, 0.03); emit({type:'mod', val}); return; }
     if (cc === 64){ pedal = val >= 64; if (!pedal){ pedalHeld.forEach(m => { if (!heldCount.has(m)){ const v = voiceFor(m); if (v) release(v); } }); pedalHeld.clear(); } return; }
-    const id = ccMap[cc]; if (!id) return;
+    let id = ccMap[cc]; if (!id) return;
+    if (bank === 'fx'){ const f = FX.find(f => f.of === id); if (f) id = f.id; }
     if (C[id].kind !== 'knob'){ setValue(id, val / 127, 'midi'); return; }
     // knobs only nudge the value on screen, so turning one picks up where the screen is instead of jumping
     let d;
@@ -994,7 +1198,7 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
   // ---------- Lessons: setups and tasks ----------
   const SETUPS = {
     sound:{v:{wave:.125, cut:1, res:0, env:0, atk:.1, dec:.45, sus:1, rel:.3, depth:0, det:0}, focus:['wave'], msg:'A pure sine wave with nothing else on, so you see the plain wave.'},
-    osc:{v:{wave:.125, cut:1, res:0, env:0, atk:.1, dec:.45, sus:1, rel:.3, depth:0, det:0}, focus:['wave','det'], msg:'Filter wide open, so you hear each wave exactly as the oscillator makes it. Turn K1.'},
+    osc:{v:{wave:.125, cut:1, res:0, env:0, atk:.1, dec:.45, sus:1, rel:.3, depth:0, det:0}, focus:['wave','det'], msg:'Filter wide open, so you hear each wave exactly as the oscillator makes it. Click each wave shape above the knobs.'},
     filter:{v:{wave:.625, cut:.92, res:.1, env:0, atk:.1, dec:.45, sus:1, rel:.3, depth:0, det:.15}, focus:['cut','res'], msg:'A bright saw with the filter open. Hold a note and turn K2 down slowly.'},
     env:{v:{wave:.625, cut:.6, res:.1, env:0, atk:.1, dec:.45, sus:.7, rel:.35, depth:0, det:.15}, focus:['atk','dec','sus','rel'], msg:'Knobs 5 to 8 shape each note. Watch the envelope graph as you turn them.'},
     fenv:{v:{wave:.625, cut:.25, res:.3, env:.6, atk:0, dec:.45, sus:.2, rel:.3, depth:0, det:.2}, focus:['env','cut','dec','sus'], msg:'Low cutoff, high env amount: each note opens the filter and closes it again.'},
@@ -1002,10 +1206,10 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
   };
   let focusT = 0;
   document.querySelectorAll('[data-setup]').forEach(b => b.addEventListener('click', () => {
-    const s = SETUPS[b.dataset.setup]; ensureAudio();
-    Object.entries(s.v).forEach(([id, v]) => { P[id] = v; renderCtl(id); });
+    const s = SETUPS[b.dataset.setup]; ensureAudio(); if (bank !== 'synth') setBank('synth');
+    Object.entries({ftype:C.ftype.def, ...s.v}).forEach(([id, v]) => { P[id] = v; renderCtl(id); });
     if (s.lfo){ lfoTarget = s.lfo; setSeg($('lfoTarget'), lfoTarget); }
-    applyGlobal(); applyParam('cut'); applyParam('res'); applyParam('wave'); applyDetune(); savePatch();
+    applyGlobal(); applyParam('ftype'); applyParam('cut'); applyParam('res'); applyParam('wave'); applyDetune(); savePatch();
     curPreset = null; renderPads();
     Object.values(ctlEls).forEach(e => e.w.classList.toggle('focus', s.focus.includes(e.w.dataset.id)));
     clearTimeout(focusT); focusT = setTimeout(() => Object.values(ctlEls).forEach(e => e.w.classList.remove('focus')), 8000);
@@ -1063,8 +1267,30 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
   for (const L in TASKS){ ticked[L] = new Set(); renderTasks(L); }
 
   // ---------- Navigation and progress ----------
-  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => $(b.dataset.go).scrollIntoView({behavior:smooth()})));
   const LESSONS = ['sound','osc','filter','env','fenv','lfo','recipes'];
+  // the guide shows one lesson at a time
+  let curLesson = LESSONS.includes(load('hb-synth-lesson', '')) ? load('hb-synth-lesson', '') : 'sound';
+  function showLesson(id){
+    curLesson = id; save('hb-synth-lesson', id);
+    LESSONS.forEach(l => $(l).classList.toggle('active', l === id));
+    document.querySelectorAll('[data-go]').forEach(b => b.dataset.go === id ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
+    const i = LESSONS.indexOf(id);
+    $('prevLesson').disabled = i === 0; $('nextLesson').disabled = i === LESSONS.length - 1;
+    $('prevLesson').style.visibility = i === 0 ? 'hidden' : ''; $('nextLesson').style.visibility = i === LESSONS.length - 1 ? 'hidden' : '';
+    $('lessonPos').textContent = `Lesson ${i + 1} of ${LESSONS.length}`;
+    $('guideBody').scrollTop = 0;
+  }
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => showLesson(b.dataset.go)));
+  $('prevLesson').addEventListener('click', () => showLesson(LESSONS[Math.max(0, LESSONS.indexOf(curLesson) - 1)]));
+  $('nextLesson').addEventListener('click', () => showLesson(LESSONS[Math.min(LESSONS.length - 1, LESSONS.indexOf(curLesson) + 1)]));
+  function setGuide(on){
+    $('studio').classList.toggle('no-guide', !on); $('guide').hidden = !on; $('showGuide').hidden = on;
+    save('hb-synth-guide', on);
+  }
+  $('hideGuide').addEventListener('click', () => setGuide(false));
+  $('showGuide').addEventListener('click', () => setGuide(true));
+  $('jumpGuide').addEventListener('click', () => $('guide').scrollIntoView({behavior:smooth(), block:'start'}));
+  setGuide(load('hb-synth-guide', true) !== false);
   let done = new Set((load('hb-synth-done', []) || []).filter(x => LESSONS.includes(x)));
   function renderDone(){
     LESSONS.forEach((id, i) => {
@@ -1088,7 +1314,7 @@ canvas{display:block;width:100%;border:1.5px solid var(--ink);border-radius:10px
   }));
   renderDone();
   const h = location.hash.slice(1);
-  if (h && $(h) && $(h).classList.contains('lesson')) setTimeout(() => $(h).scrollIntoView(), 50);
+  showLesson(LESSONS.includes(h) ? h : curLesson);
 })();
 </script>
 </body>

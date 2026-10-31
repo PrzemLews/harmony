@@ -6,7 +6,7 @@ Browser lessons for learning music theory by playing. Every lesson has a keyboar
 
 - `index.html` is the Chords page: six playable lessons on notes and intervals, scales, chords and inversions, harmony in a key (Roman numerals, tonic/subdominant/dominant, famous progressions), a gallery of chord types, and chord moves.
 - `basslines.html` is the Basslines page: seven lessons on bass patterns and grooves, with a step sequencer.
-- `synth.html` is the Synth page: seven lessons on sound synthesis (oscillators, filter, envelopes, LFO) with a playable synth, an oscilloscope, a spectrum view and an envelope graph. Its knobs, faders and pads follow the Arturia MiniLab 3 factory layout, and any other controller can be mapped with Learn.
+- `synth.html` is the Synth page: seven lessons on sound synthesis (oscillators, filter, envelopes, LFO) with a playable synth, an oscilloscope, a spectrum view and an envelope graph. A switch turns knobs 1–8 into eight effects (drive, bit crush, ring mod, chorus, phaser, flanger, delay, reverb). Its knobs, faders and pads follow the Arturia MiniLab 3 factory layout, and any other controller can be mapped with Learn.
 
 ## Controls
 
